@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>LineWatch · Trạng thái dây chuyền</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/screens.css">
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar" aria-label="Thanh điều hướng">
+        <div class="brand">LINEWATCH<small>Theo dõi ca sản xuất</small></div>
+        <span class="role">Công nhân vận hành</span>
+        <nav class="nav">
+          <a href="operator-line-status.html" class="active" aria-current="page">Trạng thái dây chuyền</a>
+          <a href="operator-incident-create.html">Báo sự cố</a>
+          <a href="operator-shift-incidents.html">Sự cố trong ca</a>
+        </nav>
+        <div class="shift">
+          <div><span data-shell="shift-date">Ca hiện tại</span></div>
+          <div data-shell="shift"><b>Ca 2 · 14:00–22:00</b></div>
+          <div>Tổ A · Xưởng 01</div>
+        </div>
+      </aside>
+
+      <main class="main">
+        <header class="topbar">
+          <h1>Trạng thái dây chuyền</h1>
+          <div class="topbar-meta">
+            <span class="date" data-shell="date">—</span>
+            <button type="button" class="icon-btn" aria-label="Thông báo">
+              <span aria-hidden="true">ⓘ</span>
+            </button>
+            <span class="user" data-shell="user">Khách</span>
+          </div>
+        </header>
+
+        <section class="content">
+          <div class="page-head">
+            <div>
+              <h2>Xưởng 01 · Ca 2</h2>
+              <p>Tổng quan chỉ số dây chuyền và sự cố đang mở trong ca.</p>
+            </div>
+            <span class="pill ok">Đang làm việc</span>
+          </div>
+
+          <div class="grid stats kpi-row" aria-live="polite">
+            <article class="card stat">
+              <p>Dây chuyền đang chạy</p>
+              <strong id="running-count">—</strong>
+              <small>Đang tải dữ liệu…</small>
+            </article>
+            <article class="card stat warn">
+              <p>Máy cảnh báo</p>
+              <strong id="warning-count">—</strong>
+              <small>Đang tải dữ liệu…</small>
+            </article>
+            <article class="card stat danger">
+              <p>Sự cố đang mở</p>
+              <strong id="incident-count">—</strong>
+              <small>Đang tải dữ liệu…</small>
+            </article>
+            <a class="btn primary kpi-action" href="operator-incident-create.html">＋ Báo sự cố</a>
+          </div>
+
+          <section class="panel">
+            <div class="section-head">
+              <h3>Sơ đồ dây chuyền theo ca</h3>
+              <span class="meta">Bấm vào máy để tạo báo cáo sự cố</span>
+            </div>
+            <div id="line-list">
+              <div class="skeleton-wrap">
+                <div class="skeleton sk-block"></div>
+                <div class="skeleton sk-block"></div>
+              </div>
+            </div>
+          </section>
+        </section>
+      </main>
+    </div>
+    <script type="module" src="../js/app.js"></script>
+  </body>
+</html>
