@@ -221,7 +221,7 @@ async function requestSuggestion() {
 
   setBusy(el.aiRetry, true, "Đang phân tích…");
   setAiButtons("loading");
-  if (el.aiState) el.aiState.textContent = "AI-1 đang đọc mô tả và mô phỏng phân loại…";
+  if (el.aiState) el.aiState.textContent = "AI-1 đang phân tích rà soát sự cố....";
   aiFeedback("");
 
   try {
