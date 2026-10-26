@@ -1,0 +1,278 @@
+﻿
+LineWatch Phân công 23 khung và quy ước ghép code
+Bản dùng chung cho Phạm Quang Thắng, Lê Văn Sơn, Nguyễn Vũ Trung Nguyên. Chỉ cần gửi một ZIP cho mỗi bạn; tài liệu phân công nằm trong sources/, ảnh và dữ liệu mẫu nằm trong assets/. Tên trường, ID, trạng thái, hàm trả về và luồng dưới đây là quy ước chung để ba phần code ghép được với nhau; không tự đổi ở một phần riêng.
+Nguồn đối chiếu: đề BTL-14, hướng dẫn CSE122, 23 khung Desktop Figma, trang Responsive & States và bảng phạm vi MVP vừa cập nhật. Phân công vẫn là 7-7-9 khung; khung trạng thái không mặc nhiên là trang HTML riêng. Mười hai tệp HTML 02-13 giữ đúng tên trong đề. Quy ước JSON/API bên dưới là quyết định triển khai của nhóm, không phải nguyên văn yêu cầu giảng viên.
+Phạm vi nhóm: làm đủ mục BẮT BUỘC PHẢI CÓ và cố gắng hoàn thành toàn bộ mục NÊN CÓ của mục 21. Biểu đồ ở mức thông thường, dễ đọc và dùng dữ liệu chung. Mục CÓ THÌ TỐT chỉ chọn hoạt ảnh và tương tác vi mô; không làm biểu đồ nâng cao, LLM API thật, PWA/bộ đệm cục bộ hay cá nhân hóa chủ đề. Bảng kiểm kê màn hình vẫn cần được duyệt; mỗi trang độc lập sau khi chốt phải có responsive, tương tác, commit/PR và video OBS.
+1  Mỗi người code phần nào
+Người
+Khung Figma
+Tệp/trang và chức năng phải làm
+Mô-đun dữ liệu mình sở hữu
+Thắng
+02, 03, 04, 12, 14, 22, 23
+operator-line-status.html; operator-incident-create.html; operator-shift-incidents.html; admin-line-management.html; register.html. Khung 22/23 là lỗi nhập/chờ duyệt của đăng ký. Tạo sự cố, AI-1, xem/sửa/hủy sự cố mới, quản lý dây chuyền. Dùng ảnh chung ở 14/22/23.
+lines.js, incident-create.js, ai1.js; cung cấp seed lines/machines.
+Sơn
+05, 06, 07, 11, 13, 18, 21
+supervisor-shift-dashboard.html; supervisor-incident-board.html; supervisor-handover-note.html; admin-machine-management.html (chỉ đọc); admin-downtime-report.html; 403.html; notifications.html. Khung 21 thể hiện trang thông báo và trạng thái không có mục chưa đọc; dùng chung dữ liệu sự cố.
+incident-flow.js, shift-notes.js, reports.js, ai2.js.
+Nguyên
+01, 08, 09, 10, 15, 16, 17, 19, 20
+login.html; maintenance-queue.html; maintenance-incident-detail.html; maintenance-machine-history.html; forgot-password.html; 404.html; 500.html. Khung 16 là trạng thái đã gửi của 15; 17 là lỗi của 01. Bảo trì, AI-3, đăng nhập demo. Dùng ảnh chung ở 01/15/16/17.
+store.js, api.js, auth.js, theme.js, maintenance.js, ai3.js; token màu trong style.css; tích hợp API và sáng/tối chung.
+
+Mỗi bạn làm HTML/CSS responsive/JS tương tác cho phần mình, dùng cùng dữ liệu và điều hướng xuyên vai trò. CSS chung chứa token màu, chữ, nút, form và layout cơ bản; CSS từng màn dùng lớp riêng và dùng token màu chung. Thắng và Nguyên cùng tham chiếu một ảnh assets/images/linewatch-auth-hero.png, không chép thành bảy tệp. Mỗi trang độc lập được duyệt có nhánh/PR, Trello và OBS tương ứng; khung trạng thái nằm trong trang mẹ không tự nhân thành trang mới.
+2  Luồng và một bộ trạng thái sự cố
+Thắng tạo INC-240 trên L02/M-202 → Sơn tiếp nhận và phân công, tạo MT-240 trỏ INC-240 → Nguyên xử lý MT-240 và cập nhật chính INC-240 → Sơn xác nhận, bàn giao và làm báo cáo. Không tạo bản sao incident ở mỗi trang.
+incidents.status
+Nhãn
+Ai chuyển và điều kiện
+new
+Mới ghi nhận
+Thắng tạo; công nhân chỉ sửa/hủy khi còn new.
+accepted
+Đã tiếp nhận
+Sơn chuyển từ new.
+assigned
+Đã phân công
+Sơn chuyển từ accepted, đồng thời tạo maintenanceTask và gán người.
+in_progress
+Đang xử lý
+Nguyên chuyển từ assigned, ghi thời gian bắt đầu.
+resolved
+Đã xử lý
+Nguyên chuyển từ in_progress, ghi nguyên nhân, biện pháp, kết quả.
+closed
+Hoàn thành
+Sơn xác nhận từ resolved.
+cancelled
+Đã hủy
+Công nhân hủy từ new, vẫn giữ lịch sử.
+
+Mã lưu trong dữ liệu là tiếng Anh; giao diện hiển thị nhãn tiếng Việt. maintenanceTasks.status dùng pending/in_progress/done và là trạng thái riêng, không thay cho incidents.status. Bộ trạng thái sự cố là phương án nhóm từ báo cáo phân tích; cả ba AI code theo đúng bộ này.
+3  JSON chung: ID, trường, quan hệ, enum
+Tập dữ liệu
+Trường thống nhất
+Quan hệ / người ghi
+lines
+id, name, status
+Thắng; status active/paused.
+machines
+id, lineId, name, status
+Thắng cấp seed; Sơn đọc ở 11. lineId trỏ lines; status normal/warning/fault/maintenance.
+incidents
+id, lineId, machineId, shiftId, title, description, category, priority, status, reportedById, assignedToId, reportedAt, acceptedAt, assignedAt, startedAt, resolvedAt, closedAt, cancelledAt, downtimeStartAt, downtimeEndAt, ai1
+Thắng tạo; Sơn tiếp nhận/phân công/đóng; Nguyên xử lý. machineId thuộc lineId; shiftId trỏ shifts.
+maintenanceTasks
+id, incidentId, assigneeId, status, cause, action, result, startedAt, completedAt, ai3
+Sơn tạo khi phân công; Nguyên cập nhật. incidentId trỏ incidents.
+shiftNotes
+id, shiftId, supervisorId, text, pendingIncidentIds, status, ai2, createdAt, updatedAt
+Sơn; status draft/saved/archived.
+reports
+id, shiftId, from, to, incidentIds, totalDowntimeMinutes, status, generatedAt, archivedAt
+Sơn; status draft/ready/archived.
+users (mock)
+id, name, role, active
+Nguyên; role operator/supervisor/maintenance/admin.
+shifts (mock)
+id, name, startsAt, endsAt, supervisorId
+Sơn cấp seed; supervisorId trỏ users.
+
+ID là chuỗi ổn định, ví dụ L02, M-202, INC-240, MT-240, USR-SUP-01, CA2-20261020; không dùng vị trí mảng. Khóa ngoại phải tồn tại; trường chưa có giá trị dùng null, danh sách rỗng dùng []. ISO 8601 có múi giờ cho thời điểm. category = mechanical/electrical/quality/other; priority = low/medium/high. Tổng downtime chỉ tính từ hai mốc downtimeStartAt/downtimeEndAt hợp lệ; nếu chưa kết thúc thì để null.
+Mẫu assets/data/seed.json
+Dữ liệu sau là trạng thái Sơn đã phân công và Nguyên chưa bắt đầu xử lý; cả nhóm dùng chung một seed.
+{
+  "lines": [
+    {
+      "id": "L02",
+      "name": "Ép định hình",
+      "status": "active"
+    }
+  ],
+  "machines": [
+    {
+      "id": "M-202",
+      "lineId": "L02",
+      "name": "Máy ép số 1",
+      "status": "warning"
+    }
+  ],
+  "incidents": [
+    {
+      "id": "INC-240",
+      "lineId": "L02",
+      "machineId": "M-202",
+      "shiftId": "CA2-20261020",
+      "title": "Rung bất thường",
+      "description": "Rung và nhiệt tăng",
+      "category": "mechanical",
+      "priority": "high",
+      "status": "assigned",
+      "reportedById": "USR-OP-01",
+      "assignedToId": "USR-MT-01",
+      "reportedAt": "2026-10-20T14:15:00+07:00",
+      "acceptedAt": "2026-10-20T14:20:00+07:00",
+      "assignedAt": "2026-10-20T14:25:00+07:00",
+      "startedAt": null,
+      "resolvedAt": null,
+      "closedAt": null,
+      "cancelledAt": null,
+      "downtimeStartAt": "2026-10-20T14:15:00+07:00",
+      "downtimeEndAt": null,
+      "ai1": {
+        "status": "accepted",
+        "suggestion": {
+          "category": "mechanical",
+          "priority": "high"
+        },
+        "reason": "Rung và nhiệt tăng",
+        "confidence": 0.8,
+        "source": "mock-rule"
+      }
+    }
+  ],
+  "maintenanceTasks": [
+    {
+      "id": "MT-240",
+      "incidentId": "INC-240",
+      "assigneeId": "USR-MT-01",
+      "status": "pending",
+      "cause": null,
+      "action": null,
+      "result": null,
+      "startedAt": null,
+      "completedAt": null,
+      "ai3": null
+    }
+  ],
+  "shiftNotes": [],
+  "reports": [],
+  "users": [
+    {
+      "id": "USR-OP-01",
+      "name": "Công nhân mẫu",
+      "role": "operator",
+      "active": true
+    },
+    {
+      "id": "USR-SUP-01",
+      "name": "Trưởng ca mẫu",
+      "role": "supervisor",
+      "active": true
+    },
+    {
+      "id": "USR-MT-01",
+      "name": "Kỹ thuật viên mẫu",
+      "role": "maintenance",
+      "active": true
+    },
+    {
+      "id": "USR-ADM-01",
+      "name": "Quản trị viên mẫu",
+      "role": "admin",
+      "active": true
+    }
+  ],
+  "shifts": [
+    {
+      "id": "CA2-20261020",
+      "name": "Ca 2",
+      "startsAt": "2026-10-20T14:00:00+07:00",
+      "endsAt": "2026-10-20T22:00:00+07:00",
+      "supervisorId": "USR-SUP-01"
+    }
+  ]
+}
+
+4  API chung: một giao diện dù chưa có backend
+Nguyên dựng store.js và api.js. Trang của Thắng/Sơn/Nguyên gọi hàm async từ api.js; các mô-đun nghiệp vụ do từng bạn viết rồi Nguyên nối qua facade. Ban đầu api.js thao tác localStorage khóa linewatch.v1, nạp seed.json khi chưa có dữ liệu. Đây là API ở mức giao diện JavaScript, không cần tạo HTTP server. Nếu sau này đổi sang MockAPI/JSON Server, UI vẫn gọi các tên hàm cũ.
+Hàm async trong api.js
+Input → output data khi thành công
+Người viết logic
+getLines(), getMachines(), getIncidents(filters)
+filters: shiftId/status/lineId; trả mảng.
+Thắng seed và lọc; Nguyên nối facade.
+createIncident(payload), updateOwnIncident(id, patch), cancelIncident(id)
+Trả incident cùng id; chỉ update/cancel khi new.
+Thắng.
+acceptIncident(id), assignIncident(id, assigneeId)
+Trả incident; assign tạo task liên kết trong cùng lần ghi.
+Sơn.
+getTasks(assigneeId), startTask(taskId), resolveTask(taskId, {cause, action, result})
+Trả task và incident liên quan khi thay trạng thái.
+Nguyên.
+closeIncident(id), saveShiftNote(payload), saveReport(payload)
+Trả bản ghi đã lưu với ID ổn định; close chỉ từ resolved.
+Sơn.
+loginDemo(role), getCurrentUser(), requestPasswordReset(email), requestRegistration(payload)
+Trả user demo/phiên; đăng ký chờ duyệt không cấp quyền.
+Nguyên auth; Thắng form đăng ký.
+
+Mọi hàm async dùng cùng dạng trả về: thành công {ok:true,data:<giá trị>,error:null}; lỗi {ok:false,data:null,error:{code:"INVALID_TRANSITION",message:"..."}}. Mã lỗi chung: VALIDATION_ERROR, NOT_FOUND, FORBIDDEN, DUPLICATE_ID, INVALID_TRANSITION, STORAGE_ERROR. UI hiển thị message, không tự biến lỗi thành dữ liệu rỗng. Hàm thay đổi nhiều thực thể phải kiểm tra tất cả trước khi lưu một lần; nếu lỗi, không lưu nửa chừng.
+Một nguồn dữ liệu trong cùng origin; không đặt seed hay mảng incidents riêng trong từng trang. Sau thao tác ghi, trang gọi lại hàm đọc hoặc phát sự kiện linewatch:data-changed để cập nhật. Refresh trang giữ dữ liệu. Chạy bằng Live Server/HTTP cục bộ để fetch seed.json hoạt động; có nút reset demo khi kiểm thử. Không lưu mật khẩu hay API key thật trong JSON/localStorage.
+5  Quy ước phản hồi AI-1, AI-2 và AI-3
+Ba tính năng AI dùng cùng bộ trạng thái UI: idle → loading → success/error. Hàm gợi ý trả {ok,data,error} giống API chung. data có {kind, suggestion, reason, confidence, source, references}. confidence là số 0..1 hoặc null; source = mock-rule nếu mô phỏng. Mỗi AI cho người dùng Chấp nhận/Sửa/Từ chối/Tạo lại; quyết định lưu ở bản ghi nghiệp vụ. AI thất bại vẫn cho nhập tay và lưu nghiệp vụ.
+Hàm AI và người code
+Input
+data.suggestion và chỗ lưu
+suggestIncident({description,machineId}) – Thắng
+Mô tả/máy, kiểm tra không rỗng.
+{category,priority}; reason giải thích; lưu incident.ai1 sau quyết định.
+summarizeShift({shiftId,incidentIds}) – Sơn
+Bản ghi cùng ca, các việc tồn.
+{text,pendingIncidentIds}; references là ID sự cố; lưu shiftNote.ai2 sau quyết định.
+analyzeMachine({machineId}) – Nguyên
+Lịch sử sự cố cùng máy.
+{pattern,incidentIds,recommendation}; thiếu lịch sử báo NO_EVIDENCE; lưu task.ai3 sau quyết định.
+
+// Ví dụ phản hồi AI-1 trước khi người dùng xác nhận
+{
+  "ok": true,
+  "data": {
+    "kind": "incident-classifier",
+    "suggestion": {"category": "mechanical", "priority": "high"},
+    "reason": "Mô tả có rung và nhiệt tăng",
+    "confidence": 0.8,
+    "source": "mock-rule",
+    "references": ["M-202"]
+  },
+  "error": null
+}
+
+Giá trị lưu ai1/ai2/ai3 thêm status = accepted/edited/rejected và nội dung sau khi người dùng sửa nếu có. Không giả gọi AI thật khi code chỉ dùng luật/JSON. AI-3 không đủ lịch sử thì hiện giải thích; kỹ thuật viên vẫn xử lý task. Khung báo cáo đọc kết quả đã lưu, không tự sinh AI thứ tư.
+6  Quy ước ghép code và lời nhắn cho AI
+Cấu trúc tối thiểu: pages/*.html; css/style.css và css/<phan-rieng>.css; assets/data/seed.json; assets/images/linewatch-auth-hero.png; js/store.js, js/api.js, js/auth.js, js/theme.js, js/lines.js, js/incident-create.js, js/incident-flow.js, js/maintenance.js, js/shift-notes.js, js/reports.js, js/ai1.js, js/ai2.js, js/ai3.js. Dùng ES modules với export/import cho các mô-đun nghiệp vụ; đường dẫn tương đối từ từng HTML phải hoạt động dưới cùng Live Server. Không đổi tên 12 HTML nghiệp vụ của đề.
+Ảnh gốc là tệp PNG 1199 × 1312 trong gói nguồn. Chỉ dùng làm nền phần trái ở các khung 01, 14, 15, 16, 17, 22, 23; đặt object-fit: cover theo Figma. Bên phải là form HTML/CSS thật, không lấy ảnh chụp cả giao diện làm nền. Ở màn hình hẹp, ưu tiên form toàn chiều rộng và ẩn phần ảnh trang trí theo bản mobile Figma.
+6.1  Phạm vi MVP và cách ghép chế độ sáng tối
+Bắt buộc phải có. Đủ vai trò và các màn hình trong bảng kiểm kê đã duyệt; điều hướng xuyên suốt; responsive; CRUD mô phỏng có ý nghĩa; tìm kiếm, lọc và kiểm tra biểu mẫu; dữ liệu giả lập hoặc API; ít nhất ba tính năng AI; minh chứng Trello/Jira/Notion; lịch sử Git với nhánh và PR; OBS cho từng trang độc lập. Ba phần dùng cùng ID để chạy trọn luồng tạo sự cố, tiếp nhận, phân công, bảo trì, xác nhận và báo cáo.
+Nên có, cố gắng làm hết. Biểu đồ và bảng điều khiển thông thường dùng dữ liệu chung; thông báo nổi; trạng thái rỗng, đang tải và lỗi; thành phần và token tạo kiểu dùng lại; chế độ sáng/tối cho mọi trang, kể cả đăng nhập, quên mật khẩu và trang lỗi. Sơn phụ trách biểu đồ/bảng điều khiển; mỗi người thực hiện các trạng thái và thông báo phù hợp phần mình.
+Có thì tốt. Chỉ làm hoạt ảnh và tương tác vi mô nhẹ sau khi luồng chính và hai chế độ màu chạy ổn. Không đưa biểu đồ nâng cao vào phạm vi code; biểu đồ thường trong mục Nên có là đủ.
+Thống nhất trước khi chia code. Nguyên tạo css/style.css với biến màu chung cho nền, chữ, thẻ, đường viền, nút, form, bảng, hộp thoại, thông báo và biểu đồ. Nguyên tạo một js/theme.js để chuyển chế độ, mặc định sáng, lưu lựa chọn light/dark vào localStorage với khóa linewatch-theme và đọc lại khi mở trang khác. Chốt tên biến màu, cách gắn nút chuyển và gửi hai tệp chung lên nhánh tích hợp sớm. Thắng và Sơn dùng ngay token chung, không tự đặt cơ chế hay khóa lưu riêng. Ảnh nhà máy giữ nguyên màu.
+Mỗi người tự kiểm tra rồi mới ghép. Mỗi bạn kiểm tra trang mình ở cả sáng và tối khi đang code, gồm trạng thái rỗng/tải/lỗi, form, bảng và thông báo. Nguyên nối nút chuyển chung vào tất cả trang lúc ghép; người phụ trách trang nào sửa CSS của trang đó nếu có lỗi. Kiểm tra đổi sang tối → chuyển sang trang do người khác làm → tải lại vẫn tối, rồi đổi lại sáng; chữ và biểu đồ luôn dễ đọc. Cuối cùng mới thêm hoạt ảnh và quay OBS.
+Bạn
+Mở Word này trong sources/, xem Figma và assets/, rồi nhắn AI
+Thắng
+Code các khung 02,03,04,12,14,22,23 và mô-đun của tôi theo quy ước dữ liệu và API chung trong Word này. Dùng assets/data/seed.json và đúng ảnh assets/images/linewatch-auth-hero.png cho đăng ký (14/22/23); form là HTML/CSS thật, responsive theo Figma. Dùng token màu và nút sáng/tối chung do Nguyên cung cấp; kiểm tra cả hai chế độ trên trang của tôi. Trả mã từng tệp, đường dẫn import, dữ liệu đọc/ghi, trạng thái rỗng/tải/lỗi và cách chạy. Không tạo bản sao api.js/store.js. AI-1 có giải thích, người dùng xác nhận; giao createIncident cho Sơn qua API chung.
+Sơn
+Code các khung 05,06,07,11,13,18,21 và mô-đun của tôi theo quy ước dữ liệu và API chung trong Word này. Khung 21 là notifications.html có bộ lọc và trạng thái không có mục chưa đọc. Nhận incident từ Thắng, assign tạo task cho Nguyên, close và báo cáo dùng cùng ID; 11 chỉ đọc. Làm biểu đồ/bảng điều khiển thông thường từ dữ liệu chung, có thông báo nổi và trạng thái rỗng/tải/lỗi. Dùng token sáng/tối của Nguyên, kiểm tra cả hai chế độ. AI-2 có giải thích, sửa/từ chối và nhập tay; không tạo dữ liệu sự cố riêng.
+Nguyên
+Code các khung 01,08,09,10,15,16,17,19,20 cùng store.js, api.js, auth.js, theme.js, maintenance.js, ai3.js và token màu trong style.css theo quy ước dữ liệu và API chung trong Word này. Chốt token, nút sáng/tối và khóa lưu sớm để Thắng/Sơn dùng. Dùng đúng ảnh assets/images/linewatch-auth-hero.png ở 01/15/16/17; 16/17 là biến thể form, không nhân trang nếu chưa duyệt. Nối exports của Thắng/Sơn vào API chung, không viết lại phần của họ. Ghép và kiểm tra sáng/tối xuyên mọi trang. Nhận MT theo assigneeId, cập nhật cùng incidentId; AI-3 có nhánh thiếu dữ liệu.
+
+Điểm ghép bắt buộc: tạo INC → bảng của Sơn thấy cùng ID → phân công tạo MT → hàng đợi của Nguyên thấy cùng assigneeId → xử lý cập nhật INC → báo cáo/ghi chú của Sơn đọc chính INC đó. Nếu AI muốn thêm trường, endpoint, trạng thái hoặc đổi tên tệp, cả nhóm thống nhất lại quy ước chung trước khi sửa code.
+7  Nguồn bàn giao cho cả nhóm
+Gửi nguyên ZIP này cho AI hỗ trợ code: Word phân công, đề và hướng dẫn nằm trong sources/; PNG gốc và JSON nằm trong assets/. Dùng Figma để xem cấu trúc, trạng thái và responsive. Phạm vi thực hiện ở mục 6.1 của tài liệu này được ưu tiên nếu chú thích MVP cũ trên Figma chưa đồng bộ.
+Nguồn
+Cách dùng
+Figma
+Thiết kế 23 khung, trạng thái và mobile: Mở Figma
+Phạm vi MVP đã cập nhật: Mở bảng mục 21
+Ảnh gốc
+assets/images/linewatch-auth-hero.png — ảnh nhà máy 1199 × 1312, dùng đúng bảy khung tài khoản. Ảnh chụp màn hình mờ không phải tệp nguồn.
+Dữ liệu
+assets/data/seed.json — một mẫu dữ liệu tích hợp có ID và quan hệ chung. Thắng/Sơn bổ sung bản ghi cho các bảng và biểu đồ mà không đổi schema.
+Đề bài
+sources/BTL-14_linewatch-theo-doi-ca-san-xuat-va-su-co-day-chuyen.md và sources/CSE122_HUONG_DAN_THUC_HIEN_BTL.docx trong gói nguồn; ưu tiên yêu cầu thầy nếu khác quy ước nhóm.
+Kiểm tra ghép: đăng nhập/đăng ký dùng cùng ảnh; tạo INC-240 → Sơn nhìn thấy → phân công MT-240 → Nguyên nhận theo assigneeId → hoàn tất cập nhật chính INC-240 → bảng điều khiển, bàn giao và báo cáo đọc lại dữ liệu đã lưu. Nếu màn hình được duyệt thêm/bớt, cập nhật bảng kiểm kê, phân công, liên kết điều hướng và số video OBS trước khi code tiếp.
+
+

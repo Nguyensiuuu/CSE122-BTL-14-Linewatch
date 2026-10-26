@@ -26,16 +26,18 @@ import {
 } from "../shared/ui.js";
 
 const LINE_STATUS = {
-  running: { label: "Đang chạy", cls: "" },
-  warning: { label: "Cảnh báo", cls: "warn" },
-  stopped: { label: "Đã dừng", cls: "danger" }
+  active: { label: "Đang hoạt động", cls: "ok" },
+  paused: { label: "Tạm dừng", cls: "danger" }
 };
 
 const MACHINE_STATUS = {
-  running: { label: "Ổn định", cls: "normal" },
+  normal: { label: "Ổn định", cls: "normal" },
   warning: { label: "Cần quan sát", cls: "warning" },
-  stopped: { label: "Đã dừng", cls: "incident" }
+  fault: { label: "Lỗi", cls: "fault" },
+  maintenance: { label: "Bảo trì", cls: "maintenance" }
 };
+
+const ATTENTION_STATUSES = ["warning", "fault", "maintenance"];
 
 let listEl = null;
 
@@ -88,21 +90,21 @@ function render(state) {
 
 function renderKpis(state) {
   const { lines, machines, incidents } = state;
-  const running = lines.filter((line) => line.status === "running");
-  const warningMachines = machines.filter((machine) => machine.status === "warning");
+  const activeLines = lines.filter((line) => line.status === "active");
+  const attentionMachines = machines.filter((machine) => ATTENTION_STATUSES.includes(machine.status));
   const openIncidents = incidents.filter(isOpenIncident);
   const highPriority = openIncidents.filter((incident) => incident.priority === "high");
 
   const runningEl = $("#running-count");
-  if (runningEl) runningEl.textContent = `${running.length} / ${lines.length}`;
-  setNote(runningEl, running.length ? `${running.map((l) => l.id).join(", ")} ổn định` : "Chưa có dây chuyền nào đang chạy");
+  if (runningEl) runningEl.textContent = `${activeLines.length} / ${lines.length}`;
+  setNote(runningEl, activeLines.length ? `${activeLines.map((l) => l.id).join(", ")} đang hoạt động` : "Chưa có dây chuyền nào đang hoạt động");
 
   const warningEl = $("#warning-count");
-  if (warningEl) warningEl.textContent = String(warningMachines.length);
+  if (warningEl) warningEl.textContent = String(attentionMachines.length);
   setNote(
     warningEl,
-    warningMachines.length
-      ? `${warningMachines.slice(0, 3).map((m) => m.id).join(", ")}${warningMachines.length > 3 ? "…" : ""}`
+    attentionMachines.length
+      ? `${attentionMachines.slice(0, 3).map((m) => m.id).join(", ")}${attentionMachines.length > 3 ? "…" : ""}`
       : "Không có máy nào cần theo dõi"
   );
 
@@ -192,6 +194,8 @@ function legend() {
     <div class="legend">
       <span class="item"><span class="dot normal"></span> Ổn định</span>
       <span class="item"><span class="dot warning"></span> Cần quan sát</span>
+      <span class="item"><span class="dot fault"></span> Lỗi</span>
+      <span class="item"><span class="dot maintenance"></span> Bảo trì</span>
       <span class="item"><span class="dot incident"></span> Đang có sự cố</span>
     </div>`;
 }

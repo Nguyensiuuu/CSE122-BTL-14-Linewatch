@@ -1,39 +1,45 @@
 /**
  * js/modules/shared/api.js
- * Lớp truy cập dữ liệu dùng chung (hợp đồng v1) cho toàn bộ khung LineWatch.
+ * Tầng nghiệp vụ của Thắng (khung 02, 03, 04, 12, 14, 22, 23) theo quy ước
+ * dữ liệu chung LineWatch.
  *
- * Đây là ĐIỂM DUY NHẤT trong mã nguồn chạm vào tầng dữ liệu: đọc seed.json,
- * đọc/ghi localStorage, kiểm tra hợp lệ và ném lỗi thống nhất. Mọi khung
- * (trạng thái dây chuyền, báo sự cố, sự cố trong ca, quản lý dây chuyền,
- * đăng ký) đều import từ đây, không tự gọi fetch/localStorage.
+ * - Một kho dữ liệu duy nhất: localStorage["linewatch.v1"], nạp seed từ
+ *   assets/data/seed.json khi chưa có dữ liệu (đúng hợp đồng nhóm).
+ * - Mọi hàm nghiệp vụ bất đồng bộ đều trả về { ok, data, error } với error là
+ *   { code, message, field }. Mã lỗi theo quy ước chung:
+ *   VALIDATION_ERROR, NOT_FOUND, FORBIDDEN, DUPLICATE_ID, INVALID_TRANSITION,
+ *   STORAGE_ERROR, NO_EVIDENCE.
+ * - Công nhân chỉ sửa/hủy sự cố do chính mình tạo khi status = "new";
+ *   KHÔNG xuất closeIncident/startIncident cho công nhân.
  *
- * Ghi chú tích hợp: kho mã dùng chung của nhóm
- * (LineWatch_NguonChung_ChoNhomCode/js/api.js, store.js) KHÔNG có trong
- * workspace này. Khi nhóm bổ sung tệp đó, chỉ cần thay phần thân của các hàm
- * dưới đây bằng re-export, ví dụ:
- *   export * from "../../../LineWatch_NguonChung_ChoNhomCode/js/api.js";
- * Không khung nào phải sửa vì tất cả đều đi qua tệp này.
- *
- * Khóa localStorage giữ nguyên như bản mẫu js/app.js để dữ liệu cũ vẫn dùng được.
+ * Ghi chú tích hợp: khi nhóm ghép js/api.js + js/store.js của Nguyên, chỉ cần
+ * re-export các hàm cùng chữ ký bên dưới; trang/module không cần sửa lại.
  */
 
-export const KEYS = {
-  incidents: "linewatch:incidents",
-  lines: "linewatch:lines",
-  draft: "linewatch:draft",
-  registrations: "linewatch:registrations",
-  lastRegistration: "linewatch:last-registration",
-  session: "linewatch:session",
-  flash: "linewatch:flash"
-};
-
+export const STORE_KEY = "linewatch.v1";
 const SEED_URL = "../assets/data/seed.json";
 
-export const LINE_STATUSES = ["running", "warning", "stopped"];
-export const INCIDENT_STATUSES = ["new", "in_progress", "closed"];
-export const IMPACTS = ["full", "partial", "unknown"];
+/* -------------------------- Enum theo quy ước chung -------------------------- */
 
-/** Lỗi nghiệp vụ có mã và thông điệp tiếng Việt hiển thị được cho người dùng. */
+export const LINE_STATUSES = ["active", "paused"];
+export const MACHINE_STATUSES = ["normal", "warning", "fault", "maintenance"];
+export const INCIDENT_STATUSES = [
+  "new",
+  "accepted",
+  "assigned",
+  "in_progress",
+  "resolved",
+  "closed",
+  "cancelled"
+];
+export const INCIDENT_CATEGORIES = ["mechanical", "electrical", "quality", "other"];
+export const PRIORITIES = ["low", "medium", "high"];
+export const IMPACTS = ["full", "partial", "unknown"];
+export const TASK_STATUSES = ["pending", "in_progress", "done"];
+export const AI1_STATUSES = ["accepted", "edited", "rejected"];
+
+/* -------------------------- Lỗi nghiệp vụ & envelope -------------------------- */
+
 export class ApiError extends Error {
   constructor(message, code = "API_ERROR", field = null, cause = null) {
     super(message);
@@ -49,7 +55,31 @@ export function toApiError(error, fallback = "Không xử lý được yêu cầ
   return new ApiError(fallback, "UNEXPECTED", null, error);
 }
 
+export function ok(data) {
+  return { ok: true, data, error: null };
+}
+
+export function fail(code, message, field = null) {
+  return { ok: false, data: null, error: { code, message, field } };
+}
+
 export const nowISO = () => new Date().toISOString();
+
+const text = (value) => String(value ?? "").trim();
+
+function toDate(value) {
+  if (!value) return null;
+  if (value instanceof Date) return Number.isNaN(value.getTime()) ? null : value;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function isoFrom(localValue) {
+  const date = toDate(localValue);
+  return date ? date.toISOString() : null;
+}
+
+/* -------------------------- Lớp lưu trữ (một kho linewatch.v1) -------------------------- */
 
 function readJSON(key, fallback = null) {
   try {
@@ -72,7 +102,7 @@ function removeKey(key) {
   notifyChange(key);
 }
 
-/** Phát sự kiện để store.js và các khung khác cập nhật lại giao diện. */
+/** Phát sự kiện để store.js và các khung khác cập nhật giao diện. */
 function notifyChange(key) {
   window.dispatchEvent(new CustomEvent("linewatch:data-changed", { detail: { key } }));
 }
@@ -100,228 +130,377 @@ export function loadSeed() {
       try {
         return await response.json();
       } catch (error) {
-        throw new ApiError("Tệp dữ liệu mẫu không đúng định dạng JSON.", "SEED_PARSE", null, error);
+        throw new ApiError("Tệp dữ liệu mẫu không đúng định dạng JSON.", "SEED_JSON", null, error);
       }
     })();
-    seedPromise.catch(() => {
-      seedPromise = null;
-    });
   }
   return seedPromise;
 }
 
-export function resetSeedCache() {
-  seedPromise = null;
-}
-
-const text = (value) => String(value ?? "").trim();
-
-/* -------------------------- Dây chuyền & máy -------------------------- */
-
-export async function listLines() {
+async function readStore() {
+  try {
+    const raw = window.localStorage.getItem(STORE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === "object" && Array.isArray(parsed.lines)) return parsed;
+    }
+  } catch (error) {
+    console.warn(`[api] Kho ${STORE_KEY} không đọc được, nạp lại seed.`, error);
+  }
   const seed = await loadSeed();
-  const stored = readJSON(KEYS.lines, null);
-  return Array.isArray(stored) && stored.length ? stored : seed.lines;
+  const store = { ...seed };
+  try {
+    window.localStorage.setItem(STORE_KEY, JSON.stringify(store));
+  } catch (error) {
+    console.warn("[api] Không ghi được seed vào localStorage.", error);
+  }
+  return store;
 }
 
-export async function listMachines(lineId = null) {
-  const seed = await loadSeed();
-  const machines = Array.isArray(seed.machines) ? seed.machines : [];
-  return lineId ? machines.filter((machine) => machine.lineId === lineId) : machines;
+function writeStore(store) {
+  window.localStorage.setItem(STORE_KEY, JSON.stringify(store));
+  notifyChange(STORE_KEY);
 }
 
-export async function getLine(lineId) {
-  return (await listLines()).find((line) => line.id === lineId) || null;
+function uniqueId(prefix, list = []) {
+  const max = list.reduce((acc, item) => {
+    const match = String(item?.id || "").match(/(\d+)\s*$/);
+    return match ? Math.max(acc, Number(match[1])) : acc;
+  }, 0);
+  return `${prefix}-${max + 1}`;
 }
 
-export async function createLine(input) {
-  const id = text(input?.id).toUpperCase();
-  const name = text(input?.name);
-  if (!/^[A-Z0-9-]{2,10}$/.test(id)) {
-    throw new ApiError("Mã dây chuyền gồm 2–10 ký tự chữ, số hoặc gạch ngang (ví dụ L04).", "VALIDATION", "lineId");
+function uniqueLineId(lines = []) {
+  const max = lines.reduce((acc, item) => {
+    const num = Number(String(item?.id || "").replace(/\D/g, "")) || 0;
+    return Math.max(acc, num);
+  }, 0);
+  return `L${String(max + 1).padStart(2, "0")}`;
+}
+
+/* -------------------------- Phiên demo (auth do Nguyên sở hữu) -------------------------- */
+
+const DEMO_OPERATOR = { id: "USR-OP-01", name: "Công nhân mẫu", role: "operator" };
+
+/**
+ * Người dùng hiện tại: lấy từ phiên nếu có, ngược lại dùng công nhân mẫu để
+ * các trang của Thắng chạy được trước khi ghép auth chung.
+ */
+export function getCurrentUser() {
+  const session = getSession();
+  return session?.user || DEMO_OPERATOR;
+}
+
+export function getCurrentShift(store) {
+  const session = getSession();
+  if (session?.shift) return session.shift;
+  const shifts = store?.shifts || [];
+  const now = Date.now();
+  const active = shifts.find(
+    (s) => toDate(s.startsAt)?.getTime() <= now && toDate(s.endsAt)?.getTime() >= now
+  );
+  return active || shifts[0] || null;
+}
+
+/* -------------------------- Dây chuyền -------------------------- */
+
+export async function getLines() {
+  const store = await readStore();
+  return ok(store.lines || []);
+}
+
+export async function createLine(input = {}) {
+  const store = await readStore();
+  const name = text(input.name);
+  if (!name) return fail("VALIDATION_ERROR", "Nhập tên dây chuyền.", "name");
+  if ((store.lines || []).some((l) => text(l.name).toLowerCase() === name.toLowerCase())) {
+    return fail("DUPLICATE_ID", "Đã có dây chuyền cùng tên.", "name");
   }
-  if (name.length < 2) {
-    throw new ApiError("Tên dây chuyền cần ít nhất 2 ký tự.", "VALIDATION", "lineName");
-  }
-  const lines = (await listLines()).slice();
-  if (lines.some((line) => line.id === id)) {
-    throw new ApiError(`Mã ${id} đã tồn tại trong danh sách dây chuyền.`, "DUPLICATE", "lineId");
-  }
-  const line = {
-    id,
-    name,
-    status: LINE_STATUSES.includes(input?.status) ? input.status : "running",
-    machines: 0,
-    createdAt: nowISO()
-  };
-  lines.push(line);
-  writeJSON(KEYS.lines, lines);
-  return line;
+  const status = LINE_STATUSES.includes(input.status) ? input.status : "active";
+  const line = { id: uniqueLineId(store.lines), name, status };
+  store.lines = [...(store.lines || []), line];
+  writeStore(store);
+  return ok(line);
 }
 
 export async function updateLineStatus(lineId, status) {
   if (!LINE_STATUSES.includes(status)) {
-    throw new ApiError("Trạng thái dây chuyền không hợp lệ.", "VALIDATION", "lineStatus");
+    return fail("VALIDATION_ERROR", "Trạng thái dây chuyền không hợp lệ.", "status");
   }
-  const lines = await listLines();
-  if (!lines.some((line) => line.id === lineId)) {
-    throw new ApiError(`Không tìm thấy dây chuyền ${lineId}.`, "NOT_FOUND");
-  }
-  const updated = lines.map((line) => (line.id === lineId ? { ...line, status, updatedAt: nowISO() } : line));
-  writeJSON(KEYS.lines, updated);
-  return updated.find((line) => line.id === lineId);
+  const store = await readStore();
+  const idx = (store.lines || []).findIndex((l) => l.id === lineId);
+  if (idx === -1) return fail("NOT_FOUND", `Không tìm thấy dây chuyền ${lineId}.`);
+  const updated = { ...store.lines[idx], status };
+  store.lines[idx] = updated;
+  writeStore(store);
+  return ok(updated);
+}
+
+/* -------------------------- Máy -------------------------- */
+
+export async function getMachines(lineId = null) {
+  const store = await readStore();
+  const machines = store.machines || [];
+  return ok(lineId ? machines.filter((m) => m.lineId === lineId) : machines);
 }
 
 /* -------------------------- Sự cố -------------------------- */
 
-export async function listIncidents() {
-  const seed = await loadSeed();
-  const stored = readJSON(KEYS.incidents, null);
-  return Array.isArray(stored) ? stored : seed.incidents;
+export async function getIncidents(filters = {}) {
+  const store = await readStore();
+  let incidents = store.incidents || [];
+  if (filters.shiftId) incidents = incidents.filter((i) => i.shiftId === filters.shiftId);
+  if (filters.status) incidents = incidents.filter((i) => i.status === filters.status);
+  if (filters.lineId) incidents = incidents.filter((i) => i.lineId === filters.lineId);
+  if (filters.machineId) incidents = incidents.filter((i) => i.machineId === filters.machineId);
+  return ok(incidents);
 }
 
-/** Kiểm tra dữ liệu biểu mẫu báo sự cố; trả về lỗi theo từng trường. */
-export function validateIncidentInput(input, { lines = [], machines = [] } = {}) {
+export function validateIncidentInput(input = {}, deps = {}) {
+  const lines = deps.lines || [];
+  const machines = deps.machines || [];
   const errors = {};
-  const lineId = text(input?.lineId);
-  const machineId = text(input?.machineId);
-  const description = text(input?.description);
-  const createdAt = text(input?.createdAt);
 
-  if (!lines.some((line) => line.id === lineId)) errors.lineId = "Chọn dây chuyền đang gặp sự cố.";
+  const lineId = text(input.lineId);
+  const machineId = text(input.machineId);
+  const description = text(input.description);
+  const category = input.category;
+  const priority = input.priority;
+  const detectedAt = input.createdAt || input.reportedAt || null;
 
-  const machine = machines.find((item) => item.id === machineId);
-  if (!machine) errors.machineId = "Chọn máy gặp sự cố.";
-  else if (lineId && machine.lineId !== lineId) errors.machineId = "Máy không thuộc dây chuyền đã chọn.";
+  const line = lines.find((l) => l.id === lineId);
+  if (!lineId) errors.lineId = "Chọn dây chuyền.";
+  else if (!line) errors.lineId = "Dây chuyền không tồn tại.";
 
-  if (description.length < 8) errors.description = "Mô tả cần ít nhất 8 ký tự để AI-1 phân loại.";
-  else if (description.length > 500) errors.description = "Mô tả tối đa 500 ký tự.";
+  const machine = machines.find((m) => m.id === machineId);
+  if (!machineId) errors.machineId = "Chọn máy.";
+  else if (!machine) errors.machineId = "Máy không tồn tại.";
+  else if (line && machine.lineId !== lineId) {
+    errors.machineId = "Máy không thuộc dây chuyền đã chọn.";
+  }
 
-  if (!IMPACTS.includes(input?.impact)) errors.impact = "Chọn mức ảnh hưởng của sự cố.";
+  if (!detectedAt) errors.createdAt = "Chọn thời điểm phát hiện.";
+  else {
+    const date = toDate(detectedAt);
+    if (!date) errors.createdAt = "Thời điểm phát hiện không hợp lệ.";
+    else if (date.getTime() > Date.now() + 60_000) {
+      errors.createdAt = "Thời điểm phát hiện không được ở tương lai.";
+    }
+  }
 
-  const time = createdAt ? new Date(createdAt) : null;
-  if (!createdAt) errors.createdAt = "Chọn thời điểm phát hiện sự cố.";
-  else if (Number.isNaN(time.getTime())) errors.createdAt = "Thời điểm không hợp lệ.";
-  else if (time.getTime() > Date.now() + 60_000) errors.createdAt = "Thời điểm không được ở tương lai.";
+  if (!description) errors.description = "Mô tả sự cố là bắt buộc.";
+  else if (description.length < 8) errors.description = "Mô tả cần ít nhất 8 ký tự.";
+
+  if (!category) errors.category = "Chọn loại sự cố.";
+  else if (!INCIDENT_CATEGORIES.includes(category)) errors.category = "Loại sự cố không hợp lệ.";
+
+  if (!priority) errors.priority = "Chọn mức ưu tiên.";
+  else if (!PRIORITIES.includes(priority)) errors.priority = "Mức ưu tiên không hợp lệ.";
 
   return { ok: Object.keys(errors).length === 0, errors };
 }
 
-/**
- * Tạo báo cáo sự cố. Đây là điểm uỷ quyền cho hàm createIncident dùng chung
- * của nhóm — các khung gọi qua api.js, không tự ghi localStorage.
- */
-export async function createIncident(input) {
-  const [lines, machines] = await Promise.all([listLines(), listMachines()]);
-  const { ok, errors } = validateIncidentInput(input, { lines, machines });
-  if (!ok) {
-    const firstField = Object.keys(errors)[0];
-    throw new ApiError(errors[firstField], "VALIDATION", firstField);
-  }
-
-  const incidents = await listIncidents();
-  const incident = {
-    id: `INC-${Date.now()}`,
-    lineId: text(input.lineId),
-    machineId: text(input.machineId),
-    description: text(input.description),
-    impact: input.impact,
-    status: "new",
-    priority: input.priority || input.ai1?.priority || "medium",
-    createdAt: input.createdAt,
-    reportedAt: nowISO(),
-    attachments: Array.isArray(input.attachments) ? input.attachments.slice(0, 3) : [],
-    ai1: input.ai1 ? { ...input.ai1, appliedAt: nowISO() } : null
-  };
-
-  writeJSON(KEYS.incidents, [incident, ...incidents]);
-  return incident;
+/** Chỉ giữ metadata của ảnh (không lưu base64/dataURL để tránh phình localStorage). */
+function normalizeAttachments(list = []) {
+  return (Array.isArray(list) ? list : [])
+    .slice(0, 3)
+    .map((file) => ({
+      name: text(file?.name),
+      type: text(file?.type),
+      size: Number(file?.size) || 0,
+      addedAt: file?.addedAt || nowISO()
+    }))
+    .filter((file) => file.name);
 }
 
-export async function updateIncidentStatus(incidentId, status, note = "") {
-  if (!INCIDENT_STATUSES.includes(status)) {
-    throw new ApiError("Trạng thái sự cố không hợp lệ.", "VALIDATION", "status");
+export async function createIncident(payload = {}) {
+  try {
+    const store = await readStore();
+    const lines = store.lines || [];
+    const machines = store.machines || [];
+    const validation = validateIncidentInput(payload, { lines, machines });
+    if (!validation.ok) {
+      const field = Object.keys(validation.errors)[0];
+      return fail("VALIDATION_ERROR", validation.errors[field], field);
+    }
+
+    const user = getCurrentUser();
+    const shift = getCurrentShift(store);
+    const reportedAt = payload.reportedAt || isoFrom(payload.createdAt) || nowISO();
+    const description = text(payload.description);
+    const title = text(payload.title) || description.slice(0, 80) || "Sự cố dây chuyền";
+
+    const incident = {
+      id: uniqueId("INC", store.incidents),
+      lineId: text(payload.lineId),
+      machineId: text(payload.machineId),
+      shiftId: shift?.id || payload.shiftId || null,
+      title,
+      description,
+      category: payload.category,
+      priority: payload.priority,
+      status: "new",
+      reportedById: user.id || payload.reportedById || null,
+      assignedToId: null,
+      reportedAt,
+      acceptedAt: null,
+      assignedAt: null,
+      startedAt: null,
+      resolvedAt: null,
+      closedAt: null,
+      cancelledAt: null,
+      downtimeStartAt: reportedAt,
+      downtimeEndAt: null,
+      notes: text(payload.notes),
+      attachments: normalizeAttachments(payload.attachments),
+      ai1: payload.ai1 && AI1_STATUSES.includes(payload.ai1.status) ? { ...payload.ai1 } : null
+    };
+
+    store.incidents = [incident, ...(store.incidents || [])];
+    writeStore(store);
+    return ok(incident);
+  } catch (error) {
+    return fail("STORAGE_ERROR", "Không lưu được sự cố. Vui lòng thử lại.");
   }
-  const incidents = await listIncidents();
-  if (!incidents.some((incident) => incident.id === incidentId)) {
-    throw new ApiError(`Không tìm thấy sự cố ${incidentId}.`, "NOT_FOUND");
-  }
-  const updated = incidents.map((incident) =>
-    incident.id === incidentId
-      ? { ...incident, status, note: note || incident.note || "", updatedAt: nowISO() }
-      : incident
-  );
-  writeJSON(KEYS.incidents, updated);
-  return updated.find((incident) => incident.id === incidentId);
 }
 
-export const closeIncident = (incidentId, note = "") => updateIncidentStatus(incidentId, "closed", note);
-export const startIncident = (incidentId, note = "") => updateIncidentStatus(incidentId, "in_progress", note);
+/** Công nhân chỉ sửa sự cố của chính mình khi còn status = "new". */
+export async function updateOwnIncident(id, patch = {}) {
+  try {
+    const store = await readStore();
+    const idx = (store.incidents || []).findIndex((i) => i.id === id);
+    if (idx === -1) return fail("NOT_FOUND", `Không tìm thấy sự cố ${id}.`);
 
-/* -------------------------- Bản nháp báo sự cố (khung 04) -------------------------- */
+    const incident = store.incidents[idx];
+    const user = getCurrentUser();
+    if (incident.reportedById !== user.id) {
+      return fail("FORBIDDEN", "Bạn chỉ được sửa sự cố do chính mình tạo.");
+    }
+    if (incident.status !== "new") {
+      return fail("INVALID_TRANSITION", "Chỉ được sửa sự cố ở trạng thái mới ghi nhận.");
+    }
+
+    const next = { ...incident };
+    const editable = ["title", "description", "category", "priority", "notes", "attachments"];
+    for (const key of editable) {
+      if (Object.prototype.hasOwnProperty.call(patch, key)) next[key] = patch[key];
+    }
+    if (patch.reportedAt) next.reportedAt = patch.reportedAt;
+
+    if (next.category && !INCIDENT_CATEGORIES.includes(next.category)) {
+      return fail("VALIDATION_ERROR", "Loại sự cố không hợp lệ.", "category");
+    }
+    if (next.priority && !PRIORITIES.includes(next.priority)) {
+      return fail("VALIDATION_ERROR", "Mức ưu tiên không hợp lệ.", "priority");
+    }
+    if (next.description != null && text(next.description).length < 8) {
+      return fail("VALIDATION_ERROR", "Mô tả cần ít nhất 8 ký tự.", "description");
+    }
+
+    next.attachments = normalizeAttachments(next.attachments);
+    // Không cho đổi id/khóa ngoại/trạng thái qua kênh sửa của công nhân.
+    next.id = incident.id;
+    next.lineId = incident.lineId;
+    next.machineId = incident.machineId;
+    next.shiftId = incident.shiftId;
+    next.reportedById = incident.reportedById;
+    next.status = incident.status;
+
+    store.incidents[idx] = next;
+    writeStore(store);
+    return ok(next);
+  } catch (error) {
+    return fail("STORAGE_ERROR", "Không lưu được thay đổi. Vui lòng thử lại.");
+  }
+}
+
+/** Công nhân hủy sự cố của chính mình khi còn status = "new"; vẫn giữ lịch sử. */
+export async function cancelIncident(id) {
+  try {
+    const store = await readStore();
+    const idx = (store.incidents || []).findIndex((i) => i.id === id);
+    if (idx === -1) return fail("NOT_FOUND", `Không tìm thấy sự cố ${id}.`);
+
+    const incident = store.incidents[idx];
+    const user = getCurrentUser();
+    if (incident.reportedById !== user.id) {
+      return fail("FORBIDDEN", "Bạn chỉ được hủy sự cố do chính mình tạo.");
+    }
+    if (incident.status !== "new") {
+      return fail("INVALID_TRANSITION", "Chỉ được hủy sự cố ở trạng thái mới ghi nhận.");
+    }
+
+    const next = { ...incident, status: "cancelled", cancelledAt: nowISO() };
+    store.incidents[idx] = next;
+    writeStore(store);
+    return ok(next);
+  } catch (error) {
+    return fail("STORAGE_ERROR", "Không hủy được sự cố. Vui lòng thử lại.");
+  }
+}
+
+/* -------------------------- Bản nháp báo sự cố (trạng thái UI) -------------------------- */
+
+const KEYS = {
+  draft: "linewatch:draft",
+  registrations: "linewatch:registrations",
+  lastRegistration: "linewatch:last-registration",
+  session: "linewatch:session",
+  flash: "linewatch:flash"
+};
 
 export function readDraft() {
-  const draft = readJSON(KEYS.draft, null);
-  if (!draft || typeof draft !== "object") return null;
-  if (!text(draft.description) && !text(draft.lineId)) return null;
-  return draft;
+  return readJSON(KEYS.draft, null);
 }
 
 export function saveDraft(draft) {
-  const payload = {
-    lineId: text(draft?.lineId),
-    machineId: text(draft?.machineId),
-    createdAt: draft?.createdAt || "",
-    description: String(draft?.description ?? ""),
-    impact: IMPACTS.includes(draft?.impact) ? draft.impact : "partial",
-    savedAt: nowISO()
-  };
-  writeJSON(KEYS.draft, payload);
-  return payload;
+  writeJSON(KEYS.draft, { ...draft, savedAt: nowISO() });
 }
 
 export function clearDraft() {
   removeKey(KEYS.draft);
 }
 
-/* -------------------------- Đăng ký tài khoản (khung 14, 22, 23) -------------------------- */
+/* -------------------------- Đăng ký (chỉ tạo yêu cầu pending) -------------------------- */
 
-export const REGISTRATION_STATUS = {
-  pending: { label: "Chờ duyệt", cls: "warn" },
-  approved: { label: "Đã duyệt", cls: "ok" },
-  rejected: { label: "Bị từ chối", cls: "danger" }
-};
+export const REGISTRATION_STATUS = { pending: "pending", approved: "approved", rejected: "rejected" };
 
 export function listRegistrations() {
-  const list = readJSON(KEYS.registrations, []);
-  return Array.isArray(list) ? list : [];
+  const value = readJSON(KEYS.registrations, []);
+  return Array.isArray(value) ? value : [];
 }
 
-/**
- * Kiểm tra yêu cầu đăng ký. Trả về `{ ok, errors }` với khóa theo id trường
- * trong biểu mẫu để khung 14 hiển thị lỗi ngay dưới ô nhập.
- */
-export function validateRegistration(input, { existing = listRegistrations() } = {}) {
+export function validateRegistration(input = {}) {
+  const existing = listRegistrations();
   const errors = {};
-  const name = text(input?.name);
-  const email = text(input?.email).toLowerCase();
-  const employeeId = text(input?.employeeId).toUpperCase();
-  const password = String(input?.password ?? "");
-  const confirmPassword = String(input?.confirmPassword ?? "");
 
-  if (name.length < 2) errors.fullName = "Nhập họ tên đầy đủ (ít nhất 2 ký tự).";
-  else if (name.length > 60) errors.fullName = "Họ tên tối đa 60 ký tự.";
+  const name = text(input.name);
+  const email = text(input.email).toLowerCase();
+  const employeeId = text(input.employeeId).toUpperCase();
+  const password = input.password || "";
+  const confirmPassword = input.confirmPassword ?? "";
 
-  if (!email) errors.email = "Nhập email công ty.";
-  else if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) errors.email = "Email chưa đúng định dạng (ví dụ name@company.com).";
+  if (name.length < 2) errors.name = "Họ tên cần ít nhất 2 ký tự.";
+  else if (name.length > 80) errors.name = "Họ tên tối đa 80 ký tự.";
+
+  if (!email) errors.email = "Nhập email.";
+  else if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+    errors.email = "Email chưa đúng định dạng (ví dụ name@company.com).";
+  }
 
   if (!employeeId) errors.employeeId = "Nhập mã nhân viên.";
-  else if (!/^[A-Z0-9-]{3,20}$/.test(employeeId)) errors.employeeId = "Mã nhân viên 3–20 ký tự chữ, số hoặc gạch ngang.";
+  else if (!/^[A-Z0-9-]{3,20}$/.test(employeeId)) {
+    errors.employeeId = "Mã nhân viên 3–20 ký tự chữ, số hoặc gạch ngang.";
+  }
 
   if (password.length < 8) errors.password = "Mật khẩu cần ít nhất 8 ký tự.";
-  else if (!/[A-Za-z]/.test(password) || !/\d/.test(password)) errors.password = "Mật khẩu cần có cả chữ và số.";
+  else if (!/[A-Za-z]/.test(password) || !/\d/.test(password)) {
+    errors.password = "Mật khẩu cần có cả chữ và số.";
+  }
 
-  if (confirmPassword !== "" && confirmPassword !== password) errors.confirmPassword = "Mật khẩu nhập lại không khớp.";
+  if (confirmPassword !== "" && confirmPassword !== password) {
+    errors.confirmPassword = "Mật khẩu nhập lại không khớp.";
+  }
 
   if (input?.terms === false) errors.terms = "Bạn cần xác nhận thông tin đăng ký là chính xác.";
 
@@ -339,8 +518,8 @@ export function validateRegistration(input, { existing = listRegistrations() } =
 
 /** Gửi yêu cầu đăng ký, luôn ở trạng thái "pending" cho tới khi quản trị viên duyệt. */
 export function submitRegistration(input) {
-  const { ok, errors } = validateRegistration(input);
-  if (!ok) {
+  const { ok: valid, errors } = validateRegistration(input);
+  if (!valid) {
     const firstField = Object.keys(errors)[0];
     throw new ApiError(errors[firstField], "VALIDATION", firstField);
   }
@@ -369,7 +548,9 @@ export function setRegistrationStatus(registrationId, status) {
     throw new ApiError("Trạng thái đăng ký không hợp lệ.", "VALIDATION", "status");
   }
   const list = listRegistrations();
-  const updated = list.map((item) => (item.id === registrationId ? { ...item, status, reviewedAt: nowISO() } : item));
+  const updated = list.map((item) =>
+    item.id === registrationId ? { ...item, status, reviewedAt: nowISO() } : item
+  );
   writeJSON(KEYS.registrations, updated);
   return updated.find((item) => item.id === registrationId) || null;
 }
@@ -395,7 +576,6 @@ export function clearSession() {
   removeKey(KEYS.session);
 }
 
-/** Thông báo ngắn dùng sau khi chuyển trang (vì toast không sống qua trang mới). */
 export function setFlash(message, type = "success") {
   if (!message) {
     removeKey(KEYS.flash);
@@ -409,3 +589,7 @@ export function takeFlash() {
   if (flash) removeKey(KEYS.flash);
   return flash;
 }
+
+
+
+

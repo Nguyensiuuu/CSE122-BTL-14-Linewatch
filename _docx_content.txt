@@ -1,0 +1,80 @@
+﻿
+LineWatch hướng dẫn sửa phần Thắng
+Người nhận: Phạm Quang Thắng và AI hỗ trợ code
+Nhánh đối chiếu: thang  |  Bản giao sửa ngày 26/10/2026
+Mục tiêu của bản này là sửa đúng bảy khung Thắng phụ trách và bàn giao các mô-đun tạo sự cố, AI-1, dây chuyền, đăng ký để Nguyên ghép. Code hiện tại có nền giao diện và form, nhưng đang lưu sự cố ở kho riêng và cho công nhân đóng sự cố; hai điểm này phải sửa trước khi ghép.
+1 Phạm vi cố định và nguồn chuẩn
+Chỉ sửa phần của Thắng. Đối chiếu thiết kế 23 khung trong Figma, cả desktop và mobile; tài liệu LineWatch_PhanCong_23Khung_QuyUocDuLieu_HuongDanGhep.docx trong sources/ là hợp đồng dữ liệu. Nếu một lời nhắc AI hoặc code cũ xung đột, ưu tiên đề bài và Word nhóm, sau đó báo rõ điểm cần thống nhất; không âm thầm đổi schema.
+MVP: đủ màn hình đã duyệt, điều hướng xuyên vai trò, responsive, CRUD mô phỏng có ý nghĩa, tìm kiếm/lọc/validation, dữ liệu chung, AI-1/2/3, Git nhánh/PR, Trello và OBS từng trang độc lập. Cố hoàn tất cả mục Nên có: dashboard/biểu đồ thường, toast, rỗng/tải/lỗi, token dùng lại và sáng/tối mọi trang. Mục Có thì tốt chỉ thêm hoạt ảnh/tương tác vi mô nhẹ sau khi luồng chính ổn; không tự thêm LLM thật, PWA hoặc biểu đồ nâng cao.
+Nguồn: https://github.com/Nguyensiuuu/CSE122-BTL-14-Linewatch ; Figma: https://www.figma.com/design/Hb7wMQduLWJliOzpJWGR98/BTL-14-LineWatch-Full-UI-Prototype ; ảnh tài khoản duy nhất assets/images/linewatch-auth-hero.png. Ảnh trang trí được crop bằng object-fit: cover; biểu mẫu vẫn là HTML thật, màn nhỏ ưu tiên form. Không chép ảnh sang pages/ hoặc dùng ảnh chụp màn Figma làm UI.
+2 Hợp đồng tích hợp không được tự đổi
+Một seed tại assets/data/seed.json; một kho localStorage linewatch.v1 do Nguyên sở hữu. Trang và module nghiệp vụ không tự ghi khóa linewatch:incidents, linewatch:lines, linewatch.v1.session hay tạo store thứ hai. Nạp qua Live Server/HTTP.
+Một facade js/api.js do Nguyên nối exports. Mỗi hàm async trả {ok:true,data,error:null} hoặc {ok:false,data:null,error:{code,message}}; mã lỗi VALIDATION_ERROR, NOT_FOUND, FORBIDDEN, DUPLICATE_ID, INVALID_TRANSITION, STORAGE_ERROR, và NO_EVIDENCE cho AI thiếu bằng chứng. UI hiện lỗi thật, không coi lỗi là mảng rỗng.
+Dùng cùng phiên từ js/auth.js, cùng theme từ js/theme.js, khóa linewatch-theme với light/dark, data-theme trên html và nút data-theme-toggle. Dùng token trong css/style.css của Nguyên; CSS riêng từng màn không ghi đè token chung theo cách làm hỏng trang khác. Sau ghi dữ liệu, phát linewatch:data-changed và tải lại dữ liệu liên quan.
+Giữ ID ổn định và khóa ngoại: machine.lineId → line.id; incident.shiftId/machineId/reportedById → ca/máy/user; task.incidentId/assigneeId → cùng incident/user. Thời điểm ISO 8601 có múi giờ, thiếu thì null; không dùng chuỗi giờ 15:36 làm ngày. category mechanical/electrical/quality/other; priority low/medium/high; line active/paused; machine normal/warning/fault/maintenance.
+Sự cố
+Ai chuyển
+Điều kiện và dữ liệu ghi
+new → accepted
+Sơn
+Tiếp nhận, ghi acceptedAt
+accepted → assigned
+Sơn
+Gán maintenance user, tạo một task pending cùng incidentId; ghi assignedAt/assignedToId trong cùng lần lưu
+assigned → in_progress → resolved
+Nguyên
+Task pending → in_progress → done; đồng bộ incident và mốc thời gian; ghi cause/action/result
+resolved → closed
+Sơn
+Trưởng ca xác nhận, ghi closedAt
+new → cancelled
+Thắng
+Chỉ chủ sự cố hủy trước khi tiếp nhận; giữ bản ghi và cancelledAt
+
+Quy tắc bàn giao: Thắng tạo INC với shiftId và reportedById → Sơn nhìn thấy đúng ID ở bảng → Sơn assign tạo MT trỏ INC → Nguyên thấy MT theo assigneeId, xử lý cập nhật chính INC → Sơn xác nhận, bàn giao và báo cáo đọc lại INC đó. Thao tác nhiều bản ghi phải kiểm tra hết rồi lưu nguyên tử một lần; không tạo bản sao incident.
+3 Yêu cầu màn hình và giao diện
+Khung
+Bố cục theo Figma và chức năng cần giữ
+02 Trạng thái dây chuyền
+Thanh bên 224px, thanh trên 72px, tiêu đề ca, ba thẻ KPI, sơ đồ L01/L02/L03 theo máy và chú giải. KPI tính từ seed chung; chọn máy/dây chuyền, lọc và nút sang báo sự cố. Trạng thái chuẩn line active/paused và machine normal/warning/fault/maintenance; không giả số cố định.
+03 Báo sự cố
+Form bên trái: dây chuyền → máy thuộc dây chuyền, thời điểm, mô tả, mức ảnh hưởng, ảnh/ghi chú, lưu nháp/gửi. Thẻ AI-1 bên phải: loại lỗi, ưu tiên, lý do, confidence, Chấp nhận/Sửa/Từ chối/Tạo lại. Form validation từng trường, lỗi và trạng thái tải; chỉ gửi khi hợp lệ.
+04 Sự cố trong ca
+Danh sách theo ca và người báo; tìm kiếm/lọc theo trạng thái/ưu tiên. Cho xem, sửa và hủy sự cố của chính mình khi status=new, giữ lịch sử hủy. Sau accepted chỉ xem. Xóa nút đóng trực tiếp của công nhân.
+12 Quản lý dây chuyền
+Danh sách/tìm kiếm/lọc, thêm dây chuyền và đổi active/paused có xác nhận/validation; dùng đúng lines trong kho chung, hiển thị số máy suy ra từ machines, không lưu trường machines tùy ý.
+14, 22, 23 Đăng ký
+Dùng duy nhất ảnh assets/images/linewatch-auth-hero.png ở phần ảnh trái; form phải là HTML. 22 là trạng thái lỗi nhập và 23 là chờ duyệt của luồng 14; không nhân thêm trang độc lập để tăng số video nếu kiểm kê chưa duyệt. Có thể giữ URL cũ như alias/trạng thái, nhưng luồng chính ở register.html.
+
+Ở tất cả màn: đối chiếu Figma ở desktop, màn hẹp và trạng thái form; giữ chữ đủ đọc, khoảng cách/đường viền/thẻ/chip tương ứng, thanh bên chuyển hợp lý trên mobile. Mọi liên kết đến Sơn/Nguyên phải trỏ trang thực trong repo sau ghép. Chế độ tối sử dụng token chung, kể cả đăng ký và trạng thái lỗi/chờ duyệt.
+4 Lỗi hiện có phải sửa theo file
+File hiện tại
+Lỗi / yêu cầu sửa
+js/modules/shared/api.js
+Bỏ kho riêng linewatch:incidents/lines và trạng thái running/warning/stopped. createIncident đang thiếu shiftId,title,category,reportedById và dùng createdAt/giờ không theo hợp đồng. Chuyển logic sang module của Thắng gọi store chung; trả {ok,data,error}. Không export closeIncident/startIncident cho công nhân.
+js/modules/operator/shift-incidents.js
+Dòng thao tác Đóng gọi updateIncidentStatus(id,"closed") sai quyền và bỏ qua bảo trì. Thay bằng sửa/hủy khi new của chính reportedById; dùng updateOwnIncident/cancelIncident.
+js/modules/operator/incident-create.js
+currentPayload chưa mang ảnh đã chọn, nên ảnh hiện chỉ được kiểm tra chứ chưa lưu. Chốt cách lưu mock gọn/metadata có thể xem lại, giới hạn 3 ảnh PNG/JPG 5MB mỗi ảnh và tránh làm localStorage phình; nếu chưa lưu ảnh thật phải ghi rõ trên UI. AI-1 quyết định trước khi ghi incident.ai1; từ chối không gán ưu tiên từ AI.
+assets/data/seed.json
+Thắng bổ sung lines/machines và các incident thử theo schema chung, không đưa file seed rút gọn ba collection để ghi đè. Mã máy M-202 phải thuộc L02, ID không trùng; ngày giờ ISO.
+css/style.css và pages/linewatch-auth-hero.png
+Không ghi đè CSS/token chung; thay bản sao ảnh ở pages bằng đường dẫn ảnh gốc trong assets. Áp theme chung trên mọi trang.
+
+5 Quy tắc nghiệp vụ và API cần xuất
+Cung cấp logic getLines(), getMachines(), getIncidents(filters), createIncident(payload), updateOwnIncident(id,patch), cancelIncident(id), suggestIncident({description,machineId}) hoặc adapter cùng chữ ký ở facade. Mỗi hàm async trả đúng result envelope; nếu đang dùng hàm ném lỗi nội bộ, bắt và chuyển ở ranh giới API. Nguyên là người nối export vào js/api.js.
+createIncident kiểm tra máy thuộc dây chuyền, ca/user hợp lệ, mô tả/title, category/priority hợp lệ. Tạo ID không trùng; status=new, reportedAt ISO, reportedById từ phiên công nhân; các mốc sau và assignedToId đều null. Không tự tạo task bảo trì ở bước này.
+updateOwnIncident/cancelIncident xác thực reportedById là người đăng nhập và status=new. Cập nhật không đổi id/shiftId/reportedById tùy tiện; hủy ghi cancelledAt, không xóa incident khỏi mảng. Mọi lỗi quyền/trạng thái dùng FORBIDDEN hoặc INVALID_TRANSITION.
+AI-1 trả kind, suggestion {category,priority}, reason, confidence 0..1, source=mock-rule, references. Có idle/loading/success/error; người dùng xác nhận hoặc sửa trước khi lưu ai1.status accepted/edited/rejected. AI lỗi vẫn cho báo sự cố bằng dữ liệu nhập tay.
+6 Điều hướng và trạng thái cần kiểm
+Đăng ký chỉ tạo yêu cầu pending, không tự cấp quyền đăng nhập. Sau đăng ký hiện trạng thái chờ duyệt, lỗi nhập phải sửa tại form. Sự cố mới xuất hiện ở trang 04 và bảng Sơn trên cùng ID; công nhân không thao tác được sự cố của người khác hoặc sự cố đã accepted. Mỗi màn có trạng thái đang tải/rỗng/lỗi và toast; search/filter giữ nguyên sau cập nhật phù hợp, nút vô hiệu khi đang lưu.
+7 Bài kiểm tra bắt buộc trước khi giao lại
+02: KPI, sơ đồ máy và bộ lọc đọc cùng seed; line active/paused; desktop/mobile sáng/tối.
+03: sai email/thiếu mô tả/máy khác dây chuyền/thời điểm tương lai/ảnh sai định dạng báo đúng lỗi; AI-1 đủ bốn quyết định; gửi tạo incident new có mọi khóa ngoại.
+04: chủ incident new sửa/hủy được; tài khoản khác và status accepted bị chặn; không có đường đóng trực tiếp.
+12/14/22/23: tạo/trùng ID dây chuyền, đổi trạng thái, đăng ký lỗi/chờ duyệt; ảnh dùng đúng assets; sáng/tối khi chuyển trang và reload.
+Luồng tích hợp: Thắng tạo INC mới → Sơn gọi getIncidents thấy đúng ID/shiftId → Sơn phân công một MT → Nguyên nhận task; không phát sinh bản sao/khóa localStorage riêng.
+8 Cách giao code để Nguyên ghép
+Gửi danh sách file mới/sửa/xóa, đường dẫn import và export chính xác, bảng ánh xạ nếu đổi từ API cũ, các trường seed bổ sung, cách chạy Live Server, và ảnh chụp desktop/mobile sáng/tối. Chỉ bàn giao module nghiệp vụ và trang của mình; không gửi bản API/store/theme chung ghi đè của Nguyên. Nếu cần thay hợp đồng, nêu đề xuất riêng trước khi code đổi.
+Trả lời theo thứ tự: (1) từng lỗi đã sửa kèm file; (2) bản code/nhánh và commit; (3) kiểm tra theo từng khung; (4) thử luồng xuyên vai trò; (5) phần chưa làm và lý do. Không tuyên bố “đã tích hợp” nếu chưa chạy cùng seed và phiên thật của nhóm.
+

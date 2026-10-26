@@ -62,7 +62,6 @@ export function initials(name) {
 const PRIORITY = {
   high: { label: "Cao", cls: "danger" },
   medium: { label: "Trung bình", cls: "warn" },
-  normal: { label: "Trung bình", cls: "warn" },
   low: { label: "Thấp", cls: "neutral" }
 };
 
@@ -72,26 +71,51 @@ export function priorityMeta(value) {
 
 const STATUS = {
   new: { label: "Mới ghi nhận", cls: "warn" },
-  draft: { label: "Bản nháp", cls: "neutral" },
-  acknowledged: { label: "Đã tiếp nhận", cls: "warn" },
-  assigned: { label: "Đã tiếp nhận", cls: "warn" },
+  accepted: { label: "Đã tiếp nhận", cls: "info" },
+  assigned: { label: "Đã phân công", cls: "info" },
   in_progress: { label: "Đang xử lý", cls: "info" },
-  "in-progress": { label: "Đang xử lý", cls: "info" },
-  pending: { label: "Chờ xử lý", cls: "warn" },
-  resolved: { label: "Hoàn thành", cls: "ok" },
+  resolved: { label: "Đã xử lý", cls: "ok" },
   closed: { label: "Hoàn thành", cls: "ok" },
-  completed: { label: "Hoàn thành", cls: "ok" },
-  cancelled: { label: "Đã hủy", cls: "neutral" },
-  canceled: { label: "Đã hủy", cls: "neutral" },
-  archived: { label: "Đã lưu trữ", cls: "neutral" }
+  cancelled: { label: "Đã hủy", cls: "neutral" }
 };
 
 export function statusMeta(value) {
   return STATUS[value] || { label: value || "Chưa rõ", cls: "neutral" };
 }
 
-export const OPEN_STATUSES = ["new", "draft", "acknowledged", "assigned", "in_progress", "in-progress", "pending"];
-export const DONE_STATUSES = ["resolved", "closed", "completed"];
+const LINE_STATUS = {
+  active: { label: "Đang hoạt động", cls: "ok" },
+  paused: { label: "Tạm dừng", cls: "danger" }
+};
+
+export function lineStatusMeta(value) {
+  return LINE_STATUS[value] || { label: value || "Chưa rõ", cls: "neutral" };
+}
+
+const MACHINE_STATUS = {
+  normal: { label: "Ổn định", cls: "ok" },
+  warning: { label: "Cần quan sát", cls: "warn" },
+  fault: { label: "Lỗi", cls: "danger" },
+  maintenance: { label: "Bảo trì", cls: "info" }
+};
+
+export function machineStatusMeta(value) {
+  return MACHINE_STATUS[value] || { label: value || "Chưa rõ", cls: "neutral" };
+}
+
+const CATEGORY = {
+  mechanical: { label: "Cơ khí" },
+  electrical: { label: "Điện" },
+  quality: { label: "Chất lượng" },
+  other: { label: "Khác" }
+};
+
+export function categoryMeta(value) {
+  return CATEGORY[value] || { label: value || "Chưa rõ" };
+}
+
+export const OPEN_STATUSES = ["new", "accepted", "assigned", "in_progress"];
+export const DONE_STATUSES = ["resolved", "closed"];
 
 export const isOpenIncident = (incident) => OPEN_STATUSES.includes(incident?.status);
 export const isDoneIncident = (incident) => DONE_STATUSES.includes(incident?.status);

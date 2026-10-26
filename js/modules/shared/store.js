@@ -1,8 +1,8 @@
 /**
  * js/modules/shared/store.js
- * Kho trạng thái dùng chung: nạp dữ liệu qua api.js, giữ bản sao trong bộ nhớ,
- * phát tín hiệu cho các khung cùng cập nhật. Không khung nào tự đọc
- * localStorage hay tự fetch seed.json.
+ * Kho trạng thái dùng chung: nạp dữ liệu qua api.js (envelope { ok, data, error }),
+ * giữ bản sao trong bộ nhớ, phát tín hiệu cho các khung cùng cập nhật.
+ * Không khung nào tự đọc localStorage hay tự fetch seed.json.
  *
  * Cách dùng trong một khung:
  *   import { store } from "./shared/store.js";
@@ -12,11 +12,11 @@
  */
 
 import {
-  listLines,
-  listMachines,
-  listIncidents,
+  getLines,
+  getMachines,
+  getIncidents,
   getSession,
-  loadSeed,
+  getCurrentUser,
   toApiError
 } from "./api.js";
 
@@ -27,6 +27,7 @@ const EMPTY_STATE = {
   machines: [],
   incidents: [],
   session: null,
+  user: null,
   loadedAt: null
 };
 
@@ -60,6 +61,17 @@ function normaliseSession(session) {
   };
 }
 
+/** Ném lỗi từ một envelope không thành công để tập trung xử lý ở khối catch. */
+function throwIfFailed(res, fallback) {
+  if (!res || res.ok === false) {
+    const message = res?.error?.message || fallback;
+    const error = new Error(message);
+    error.code = res?.error?.code;
+    throw error;
+  }
+  return res.data;
+}
+
 export const store = {
   getState() {
     return state;
@@ -79,15 +91,19 @@ export const store = {
 
     inflight = (async () => {
       try {
-        await loadSeed();
-        const [lines, machines, incidents] = await Promise.all([listLines(), listMachines(), listIncidents()]);
+        const [lines, machines, incidents] = await Promise.all([
+          getLines(),
+          getMachines(),
+          getIncidents()
+        ]);
         setState({
           status: "ready",
           error: null,
-          lines,
-          machines,
-          incidents,
+          lines: throwIfFailed(lines, "Không tải được dây chuyền."),
+          machines: throwIfFailed(machines, "Không tải được máy."),
+          incidents: throwIfFailed(incidents, "Không tải được sự cố."),
           session: normaliseSession(getSession()),
+          user: getCurrentUser(),
           loadedAt: new Date().toISOString()
         });
         return state;
