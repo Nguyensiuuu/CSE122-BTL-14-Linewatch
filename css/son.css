@@ -1,0 +1,565 @@
+/* ==========================================================
+ * PHẦN SƠN: .sd (dashboard), .bd (board), .ho (handover),
+ *           .mm (machines), .dr (downtime), .nt (notifications), .e403
+ * ========================================================== */
+
+/* --- KPIs Dashboard --- */
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 193px));
+  gap: 12px;
+  margin: 14px 0 22px;
+}
+
+.kpi {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--green);
+  border-radius: 10px;
+  padding: 12px 16px;
+}
+
+.kpi.red {
+  border-left-color: var(--red);
+}
+.kpi.slate {
+  border-left-color: var(--slate);
+}
+.kpi.amber {
+  border-left-color: var(--amber);
+}
+
+.kpi small {
+  color: var(--muted);
+  display: block;
+}
+.kpi strong {
+  font-size: 22px;
+  line-height: 1.3;
+  font-family: var(--sans);
+  display: block;
+}
+.kpi span {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* --- SD Grid & Cards --- */
+.sd-grid {
+  display: grid;
+  grid-template-columns: 1.95fr 1fr;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.sd-grid .card {
+  min-height: 208px;
+}
+
+.card h3 {
+  font-size: 13px;
+  font-family: var(--sans);
+  font-weight: 600;
+  margin-bottom: 14px;
+}
+
+/* --- Biểu đồ (Chart) --- */
+.chart {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 14px;
+  height: 120px;
+  padding: 0 6px;
+}
+
+.chart i {
+  flex: 0 0 27px;
+  background: var(--green);
+  border-radius: 4px;
+  min-height: 4px;
+}
+.chart i.m {
+  background: var(--amber);
+}
+.chart i.h {
+  background: var(--red);
+}
+.chart i.z {
+  background: var(--line);
+}
+
+.axis {
+  display: flex;
+  justify-content: space-between;
+  color: var(--muted);
+  font-size: 11px;
+  margin-top: 6px;
+}
+
+/* --- Danh sách & Điểm danh (List & Attendance) --- */
+.li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  font-size: 13px;
+}
+
+.li + .li {
+  border-top: 1px solid var(--line);
+}
+
+.att {
+  display: grid;
+  grid-template-columns: 76px 1fr 130px 130px 150px;
+  gap: 10px;
+  align-items: center;
+  padding: 14px 0;
+  border-top: 1px solid var(--line);
+}
+
+.att b {
+  color: var(--green);
+}
+.att-card {
+  min-height: 250px;
+}
+.att .pill {
+  justify-self: start;
+}
+.pill {
+  padding: 3px 16px;
+  min-width: 54px;
+  text-align: center;
+}
+
+/* --- Board Tools & Chips --- */
+.bd-tools {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+  align-items: center;
+}
+
+.bd-tools input[type="search"] {
+  min-width: 260px;
+}
+
+.chip {
+  border: 0;
+  border-radius: 99px;
+  padding: 5px 14px;
+  font: inherit;
+  font-size: 12px;
+  background: var(--grey-soft);
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.chip[aria-pressed="true"] {
+  background: var(--red-soft);
+  color: var(--red);
+}
+.chip.g[aria-pressed="true"] {
+  background: var(--green-soft);
+  color: var(--green);
+}
+
+/* --- Columns & Tickets (Board) --- */
+.cols {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+}
+
+.col-b {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--line);
+  border-radius: 10px;
+  padding: 10px;
+  min-height: 260px;
+}
+
+.col-b h3 {
+  font-size: 13px;
+  font-family: var(--sans);
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.col-b h3 span {
+  background: var(--grey-soft);
+  border-radius: 99px;
+  padding: 0 9px;
+  font-weight: 400;
+}
+
+.c-new {
+  border-top-color: var(--red);
+}
+.c-accepted {
+  border-top-color: var(--amber);
+}
+.c-assigned {
+  border-top-color: var(--slate);
+}
+.c-in_progress,
+.c-resolved {
+  border-top-color: var(--green);
+}
+
+.tk {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--green);
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+
+.tk.high {
+  border-left-color: var(--red);
+}
+.tk.medium {
+  border-left-color: var(--amber);
+}
+.tk[aria-pressed="true"] {
+  outline: 2px solid var(--green);
+}
+
+.tk b {
+  color: var(--green);
+  font-size: 12px;
+}
+.tk p {
+  margin: 4px 0 10px;
+  font-weight: 500;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+.tk small {
+  color: var(--muted);
+}
+
+/* --- Action Bar & Handover (.ho) --- */
+.actbar {
+  margin-top: 14px;
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px 18px;
+}
+
+.actbar .t {
+  flex: 1;
+  min-width: 240px;
+}
+.actbar small {
+  color: var(--muted);
+  display: block;
+}
+
+.ho {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.ho textarea {
+  width: 100%;
+  min-height: 220px;
+  resize: vertical;
+  margin-top: 6px;
+}
+
+.pend {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 6px 14px;
+  margin: 6px 0 16px;
+}
+
+.foot {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-top: 14px;
+}
+
+.foot .sp {
+  margin-left: auto;
+}
+
+/* --- AI Box --- */
+.ai {
+  background: var(--green-soft);
+  border: 1px solid var(--line);
+}
+
+.ai h3 {
+  color: var(--green);
+}
+.ai small {
+  color: var(--muted);
+  display: block;
+  margin: 12px 0 4px;
+}
+.ai ul {
+  margin: 0;
+  padding-left: 16px;
+}
+.ai .acts {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+.ai textarea {
+  width: 100%;
+  min-height: 110px;
+}
+
+/* --- Machines & Downtime (.mm, .dr) --- */
+.mm-t {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.mm-t input {
+  min-width: 260px;
+}
+
+.dr-f {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.dr-f .btn {
+  margin-left: auto;
+}
+
+.dr-g {
+  display: grid;
+  grid-template-columns: 2fr 1.1fr;
+  gap: 14px;
+  margin: 16px 0;
+}
+
+.bar {
+  display: grid;
+  grid-template-columns: 56px 1fr 70px;
+  gap: 12px;
+  align-items: center;
+  padding: 9px 0;
+  font-size: 12px;
+}
+
+.bar div {
+  height: 10px;
+  background: var(--grey-soft);
+  border-radius: 9px;
+}
+.bar i {
+  display: block;
+  height: 100%;
+  border-radius: 9px;
+  background: var(--slate);
+}
+.bar i.r {
+  background: var(--red);
+}
+.bar i.a {
+  background: var(--amber);
+}
+.bar b {
+  text-align: right;
+}
+
+.saved {
+  background: var(--surface);
+}
+
+.saved .row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+}
+
+.saved .row strong {
+  margin-right: auto;
+}
+
+/* --- Notifications (.nt) --- */
+.nt-f {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.nt-f .btn[aria-pressed="true"] {
+  background: var(--green);
+  color: var(--on-green);
+  border-color: var(--green);
+}
+
+.nt-f .btn:last-child {
+  margin-left: auto;
+}
+
+.ntp {
+  position: fixed;
+  top: 64px;
+  right: 24px;
+  width: min(560px, calc(100vw - 32px));
+  max-height: calc(100vh - 90px);
+  overflow: auto;
+  z-index: 15;
+  box-shadow: 0 12px 40px #0003;
+}
+
+.nt-h {
+  font-size: 20px !important;
+  font-family: var(--serif) !important;
+  margin: 4px 0 !important;
+}
+
+.nt-l {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.nt-i {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+.nt-i b {
+  color: var(--green);
+}
+.nt-i.un {
+  border-left: 3px solid var(--red);
+}
+.nt-i time {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 12px;
+}
+.nt-i a {
+  font-weight: 600;
+  text-decoration: none;
+}
+
+/* --- Theme toggle button --- */
+[data-theme-toggle] {
+  font-size: 12px;
+  padding: 6px 10px;
+}
+
+/* --- Empty State & 403 Error (.e403) --- */
+.empty {
+  padding: 28px 24px;
+}
+
+.empty h3 {
+  font-size: 20px;
+  font-family: var(--serif);
+}
+
+.empty p {
+  color: var(--muted);
+}
+
+.e403 {
+  min-height: 100vh;
+  border-top: 6px solid var(--amber);
+  padding: 40px 6vw;
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  grid-template-rows: auto 1fr auto;
+  gap: 20px 40px;
+}
+
+.e403 .big {
+  font: 700 clamp(90px, 16vw, 180px) / 1 var(--serif);
+  color: var(--amber);
+}
+
+.e403 header small {
+  display: block;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  font-size: 11px;
+}
+
+.e403 .note {
+  background: var(--green-soft);
+  color: var(--muted);
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin: 8px 0 18px;
+}
+
+.e403 h1 {
+  font-size: 26px;
+}
+
+/* --- Responsive Media Queries --- */
+@media (max-width: 900px) {
+  .kpis {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .sd-grid,
+  .ho,
+  .dr-g,
+  .e403 {
+    grid-template-columns: 1fr;
+  }
+  .att {
+    grid-template-columns: 70px 1fr 90px;
+  }
+  .att > :nth-child(n + 4) {
+    display: none;
+  }
+  .bd-tools input[type="search"] {
+    min-width: 0;
+    width: 100%;
+  }
+}
+
+@media (max-width: 1000px) {
+  .cols {
+    grid-template-columns: repeat(5, 200px);
+  }
+}
