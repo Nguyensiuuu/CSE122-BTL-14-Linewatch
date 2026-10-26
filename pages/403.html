@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>403 · Không có quyền · LineWatch</title>
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Lora:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../css/style.css" />
+    <link rel="stylesheet" href="../css/son.css" />
+
+    <script>
+      if (location.protocol === "file:") {
+        document.addEventListener("DOMContentLoaded", function () {
+          document.body.innerHTML = `
+          <div style="max-width:560px;margin:60px auto;font:16px/1.6 system-ui;padding:24px;border:2px solid #b07a2b;border-radius:12px;background:#fff;color:#1d2a24">
+            <h2>Chưa chạy qua máy chủ cục bộ</h2>
+            <p>Trang dùng ES module và fetch seed.json nên <b>không mở bằng double-click (file://)</b> được. Hãy mở thư mục dự án bằng <b>Live Server</b> (VS Code) hoặc chạy file <b>chay.bat</b> / <b>chay.sh</b>, rồi vào <b>http://localhost:8000/</b>.</p>
+          </div>
+        `;
+        });
+      }
+    </script>
+  </head>
+  <body>
+    <div class="e403">
+      <header style="grid-column: 1 / -1">
+        <b>LINEWATCH</b>
+        <small>THEO DÕI CA SẢN XUẤT / TRUNG TÂM HỖ TRỢ</small>
+      </header>
+
+      <div>
+        <div class="big" aria-hidden="true">403</div>
+        <p class="sub" style="margin-top: auto">
+          Giữ nguyên dữ liệu ca làm việc. Bạn có thể tiếp tục từ trang phù hợp.
+        </p>
+      </div>
+
+      <main>
+        <section class="card">
+          <h1>Bạn chưa có quyền truy cập</h1>
+          <p>
+            Tài khoản hiện tại không được phép xem khu vực này. Quyền truy cập
+            do quản trị viên của xưởng cấp.
+          </p>
+          <p class="note">
+            Kiểm tra tài khoản đang đăng nhập hoặc liên hệ quản trị viên để được
+            phân quyền.
+          </p>
+
+          <a class="btn pri" id="home" href="supervisor-shift-dashboard.html"
+            >Về tổng quan</a
+          >
+          <button class="btn" id="ct">Liên hệ quản trị</button>
+          <p id="m" class="sub" role="status" hidden>
+            Hãy báo mã LW-403 cho quản trị viên xưởng 01.
+          </p>
+        </section>
+      </main>
+
+      <footer class="sub" style="grid-column: 1 / -1">
+        Hỗ trợ nội bộ · Xưởng 01 · Mã tham chiếu LW-403
+      </footer>
+    </div>
+
+    <script type="module">
+      import { getCurrentUser } from "../js/api.js";
+
+      document.documentElement.dataset.theme =
+        localStorage.getItem("linewatch-theme") || "light";
+
+      const r = await getCurrentUser();
+      const currentUser = r.ok ? r.data : null;
+      const roleRoutes = {
+        admin: "admin-machine-management.html",
+        supervisor: "supervisor-shift-dashboard.html",
+        maintenance: "maintenance-queue.html",
+        operator: "operator-line-status.html",
+      };
+
+      if (currentUser) {
+        document.getElementById("home").href =
+          roleRoutes[currentUser.role] || "../index.html";
+      }
+
+      document.getElementById("ct").onclick = () => {
+        document.getElementById("m").hidden = false;
+      };
+    </script>
+  </body>
+</html>
