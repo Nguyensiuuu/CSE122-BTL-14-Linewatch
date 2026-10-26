@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chi tiết sự cố | LineWatch</title>
+  <script src="../../js/theme.js"></script>
+  <link rel="stylesheet" href="../../css/style.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="khung-ung-dung">
+    <aside class="thanh-ben" id="sidebar"></aside>
+    <div class="khu-lam-viec">
+      <header class="thanh-tren" id="topbar"></header>
+      <main class="noi-dung-trang">
+        <div class="dau-trang"><h2 id="detail-title">Đang tải sự cố…</h2><p id="detail-subtitle"></p></div>
+        <div class="luoi-chi-tiet">
+          <section class="the">
+            <h3>Thông tin sự cố</h3>
+            <dl class="luoi-thong-tin" id="incident-info"></dl>
+            <hr class="duong-phan-cach">
+            <h3>Cập nhật kỹ thuật</h3>
+            <form id="work-form" novalidate>
+              <div class="truong-nhap"><label for="cause">Nguyên nhân</label><input id="cause" name="cause" placeholder="Ghi nguyên nhân đã xác minh"></div>
+              <div class="truong-nhap"><label for="action">Biện pháp xử lý</label><textarea id="action" name="action" placeholder="Các bước đã thực hiện"></textarea></div>
+              <div class="truong-nhap"><label for="result">Kết quả</label><textarea id="result" name="result" placeholder="Kết quả kiểm tra sau xử lý"></textarea></div>
+              <p class="loi-bieu-mau" id="work-error" role="alert" hidden></p>
+              <div class="hang can-hai-ben"><div><span class="chu-nho chu-phu">Trạng thái</span><p id="task-status"></p></div><div class="nhom-nut"><button class="nut phu" type="button" id="start-task">Bắt đầu xử lý</button><button class="nut" type="submit" id="resolve-task">Lưu hoàn tất</button></div></div>
+            </form>
+          </section>
+          <div class="xep-doc">
+            <section class="the"><h3>Dòng thời gian</h3><ol class="dong-thoi-gian" id="timeline"></ol></section>
+            <section class="the the-goi-y"><h3 id="history-heading">Lịch sử gần nhất</h3><p id="history-summary" class="chu-nho"></p><a id="machine-link" href="../10-lich-su/maintenance-machine-history.html">Xem lịch sử máy →</a></section>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+  <div class="vung-thong-bao-noi" id="toasts" aria-live="polite"></div>
+  <script type="module" src="script.js"></script>
+</body>
+</html>

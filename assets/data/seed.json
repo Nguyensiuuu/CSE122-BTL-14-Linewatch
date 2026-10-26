@@ -1,0 +1,103 @@
+{
+  "lines": [
+    {
+      "id": "L02",
+      "name": "Ép định hình",
+      "status": "active"
+    }
+  ],
+  "machines": [
+    {
+      "id": "M-202",
+      "lineId": "L02",
+      "name": "Máy ép số 1",
+      "status": "warning"
+    }
+  ],
+  "incidents": [
+    {
+      "id": "INC-240",
+      "lineId": "L02",
+      "machineId": "M-202",
+      "shiftId": "CA2-20261020",
+      "title": "Rung bất thường",
+      "description": "Rung và nhiệt tăng",
+      "category": "mechanical",
+      "priority": "high",
+      "status": "assigned",
+      "reportedById": "USR-OP-01",
+      "assignedToId": "USR-MT-01",
+      "reportedAt": "2026-10-20T14:15:00+07:00",
+      "acceptedAt": "2026-10-20T14:20:00+07:00",
+      "assignedAt": "2026-10-20T14:25:00+07:00",
+      "startedAt": null,
+      "resolvedAt": null,
+      "closedAt": null,
+      "cancelledAt": null,
+      "downtimeStartAt": "2026-10-20T14:15:00+07:00",
+      "downtimeEndAt": null,
+      "ai1": {
+        "status": "accepted",
+        "suggestion": {
+          "category": "mechanical",
+          "priority": "high"
+        },
+        "reason": "Rung và nhiệt tăng",
+        "confidence": 0.8,
+        "source": "mock-rule"
+      }
+    }
+  ],
+  "maintenanceTasks": [
+    {
+      "id": "MT-240",
+      "incidentId": "INC-240",
+      "assigneeId": "USR-MT-01",
+      "status": "pending",
+      "cause": null,
+      "action": null,
+      "result": null,
+      "startedAt": null,
+      "completedAt": null,
+      "ai3": null
+    }
+  ],
+  "maintenanceLogs": [],
+  "shiftNotes": [],
+  "reports": [],
+  "users": [
+    {
+      "id": "USR-OP-01",
+      "name": "Công nhân mẫu",
+      "role": "operator",
+      "active": true
+    },
+    {
+      "id": "USR-SUP-01",
+      "name": "Trưởng ca mẫu",
+      "role": "supervisor",
+      "active": true
+    },
+    {
+      "id": "USR-MT-01",
+      "name": "Kỹ thuật viên mẫu",
+      "role": "maintenance",
+      "active": true
+    },
+    {
+      "id": "USR-ADM-01",
+      "name": "Quản trị viên mẫu",
+      "role": "admin",
+      "active": true
+    }
+  ],
+  "shifts": [
+    {
+      "id": "CA2-20261020",
+      "name": "Ca 2",
+      "startsAt": "2026-10-20T14:00:00+07:00",
+      "endsAt": "2026-10-20T22:00:00+07:00",
+      "supervisorId": "USR-SUP-01"
+    }
+  ]
+}

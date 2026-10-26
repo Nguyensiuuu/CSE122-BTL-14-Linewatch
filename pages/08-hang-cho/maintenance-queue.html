@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hàng chờ bảo trì | LineWatch</title>
+  <script src="../../js/theme.js"></script>
+  <link rel="stylesheet" href="../../css/style.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="khung-ung-dung">
+    <aside class="thanh-ben" id="sidebar"></aside>
+    <div class="khu-lam-viec">
+      <header class="thanh-tren" id="topbar"></header>
+      <main class="noi-dung-trang">
+        <div class="dau-trang"><h2>Hàng chờ bảo trì</h2><p>Ưu tiên công việc dựa trên mức độ ảnh hưởng và thời gian chờ</p></div>
+        <section class="thong-ke" aria-label="Số liệu công việc">
+          <div class="the chi-so red"><span>Được giao</span><strong id="assigned-count">–</strong><small id="high-count">Đang tải</small></div>
+          <div class="the chi-so blue"><span>Đang xử lý</span><strong id="progress-count">–</strong><small>Công việc đang thực hiện</small></div>
+          <div class="the chi-so amber"><span>Chờ &gt; 30 phút</span><strong id="waiting-count">–</strong><small>Ưu tiên kiểm tra</small></div>
+          <label class="tim-cong-viec"><span class="sr-only">Tìm công việc</span><input class="o-tim" id="task-search" type="search" placeholder="Tìm công việc"></label>
+        </section>
+        <section class="the danh-sach-cong-viec">
+          <h3>Công việc theo ưu tiên</h3>
+          <div id="task-list" class="dang-tai">Đang tải công việc…</div>
+        </section>
+        <p class="chu-nho chu-phu ghi-chu-noi-dung">Dữ liệu lấy từ seed.json và các thao tác đã lưu. <button id="reset-data" type="button" class="nut khong-nen nut-nho">Đặt lại dữ liệu demo</button></p>
+      </main>
+    </div>
+  </div>
+  <div class="vung-thong-bao-noi" id="toasts" aria-live="polite"></div>
+  <script type="module" src="script.js"></script>
+</body>
+</html>
