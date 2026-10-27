@@ -1,0 +1,135 @@
+/* Trang 01-dang-nhap - CSS riêng. Màu/nút/form cơ bản ở ../../css/style.css. */
+.bo-cuc-tai-khoan {
+  display: grid;
+  grid-template-columns: 53% 47%;
+  min-height: 100vh;
+  background: var(--page);
+}
+.anh-tai-khoan {
+  min-height: 100vh;
+  overflow: hidden;
+  background: #071b21;
+}
+.anh-tai-khoan img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 100vh;
+  object-fit: cover;
+  object-position: center;
+}
+.vung-bieu-mau {
+  display: grid;
+  place-items: center;
+  padding: 60px 34px 30px;
+  position: relative;
+}
+.vung-bieu-mau > .nut-giao-dien {
+  position: absolute;
+  top: 20px;
+  right: 28px;
+}
+.cot-tai-khoan {
+  width: min(100%, 430px);
+}
+.cot-tai-khoan.rong {
+  width: min(100%, 580px);
+}
+.the-tai-khoan {
+  padding: 40px 36px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.the-tai-khoan h1 {
+  font-size: 28px;
+  margin-bottom: 6px;
+}
+.the-tai-khoan .intro {
+  color: var(--muted);
+  margin-bottom: 32px;
+  font-size: 16px;
+}
+.the-tai-khoan .nut.day-du {
+  width: 100%;
+}
+.tuy-chon-tai-khoan {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 26px;
+  font-size: 14px;
+}
+.tuy-chon-tai-khoan label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+}
+.tuy-chon-tai-khoan input {
+  accent-color: var(--green);
+}
+.lien-ket-tai-khoan {
+  margin: 14px 0 16px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.vach-tai-khoan {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin: 22px 0;
+}
+.chu-thich-tai-khoan {
+  margin: 27px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+.vai-tro-mau {
+  margin-top: 20px;
+}
+.vai-tro-mau > p {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+.cac-vai-tro {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.cac-vai-tro button {
+  background: var(--green-tint);
+  border: 0;
+  color: var(--green);
+  border-radius: 5px;
+  padding: 9px 12px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.cac-vai-tro button:hover {
+  filter: brightness(.94);
+}
+@media (max-width: 900px) {
+  .bo-cuc-tai-khoan {
+    display: block;
+  }
+  .anh-tai-khoan {
+    display: none;
+  }
+  .vung-bieu-mau {
+    min-height: 100vh;
+    padding: 70px 20px 28px;
+  }
+  .vung-bieu-mau > .nut-giao-dien {
+    right: 20px;
+  }
+}
+@media (max-width: 480px) {
+  .the-tai-khoan {
+    padding: 30px 22px;
+  }
+  .tuy-chon-tai-khoan {
+    align-items: flex-start;
+  }
+}

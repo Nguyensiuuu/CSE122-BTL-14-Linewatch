@@ -1,0 +1,73 @@
+/* Trang 19-loi-404 - CSS riêng. Màu/nút/form cơ bản ở ../../css/style.css. */
+.trang-loi {
+  min-height: 100vh;
+  border-top: 8px solid var(--green);
+  display: flex;
+  flex-direction: column;
+  padding: 48px 7%;
+  background: var(--page);
+}
+.dau-trang-loi {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+.dau-trang-loi strong {
+  font-size: 21px;
+}
+.dau-trang-loi small {
+  display: block;
+  color: var(--muted);
+  margin-top: 6px;
+  font-size: 12px;
+  letter-spacing: .04em;
+}
+.than-trang-loi {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 35% 1fr;
+  align-items: center;
+  gap: 45px;
+}
+.ma-loi {
+  color: var(--green);
+  font-family: Lora, Georgia, serif;
+  font-size: clamp(100px, 13vw, 185px);
+  line-height: 1;
+}
+.ghi-chu-loi {
+  color: var(--muted);
+  margin-top: 110px;
+  max-width: 430px;
+  line-height: 1.6;
+}
+.the-loi {
+  padding: 40px;
+  max-width: 710px;
+}
+.the-loi h1 {
+  font-size: 31px;
+}
+.the-loi p {
+  line-height: 1.55;
+}
+.chan-trang-loi {
+  color: var(--muted);
+  font-size: 12px;
+}
+@media (max-width: 850px) {
+  .trang-loi {
+    padding: 26px 22px;
+  }
+  .than-trang-loi {
+    display: block;
+    padding: 70px 0;
+  }
+  .ghi-chu-loi {
+    margin: 10px 0 28px;
+  }
+  .the-loi {
+    padding: 26px;
+  }
+}
