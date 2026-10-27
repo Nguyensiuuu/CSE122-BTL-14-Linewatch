@@ -56,7 +56,8 @@
   min-height: 208px;
 }
 
-.card h3 {
+.card h3,
+.card h2 {
   font-size: 13px;
   font-family: var(--sans);
   font-weight: 600;
@@ -146,6 +147,7 @@
 .bd-tools input[type="search"] {
   min-width: 260px;
 }
+.bd-tools select { max-width: 100%; min-width: 0; }
 
 .chip {
   border: 0;
@@ -185,7 +187,7 @@
   min-height: 260px;
 }
 
-.col-b h3 {
+.col-b h2 {
   font-size: 13px;
   font-family: var(--sans);
   display: flex;
@@ -193,7 +195,7 @@
   margin-bottom: 10px;
 }
 
-.col-b h3 span {
+.col-b h2 span {
   background: var(--grey-soft);
   border-radius: 99px;
   padding: 0 9px;
@@ -314,7 +316,8 @@
   border: 1px solid var(--line);
 }
 
-.ai h3 {
+.ai h3,
+.ai h2 {
   color: var(--green);
 }
 .ai small {
@@ -445,9 +448,9 @@
 }
 
 .nt-h {
-  font-size: 20px !important;
-  font-family: var(--serif) !important;
-  margin: 4px 0 !important;
+  font-size: 20px;
+  font-family: var(--serif);
+  margin: 4px 0;
 }
 
 .nt-l {
@@ -492,7 +495,7 @@
   padding: 28px 24px;
 }
 
-.empty h3 {
+.empty h2 {
   font-size: 20px;
   font-family: var(--serif);
 }
@@ -556,6 +559,7 @@
     min-width: 0;
     width: 100%;
   }
+  .bd-tools select { width: 100%; }
 }
 
 @media (max-width: 1000px) {
