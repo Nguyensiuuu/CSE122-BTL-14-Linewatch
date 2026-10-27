@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>LineWatch · Tạo báo cáo sự cố</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/thang-base.css">
+    <link rel="stylesheet" href="../css/screens.css">
+  <script src="../js/theme.js"></script>
+    <link rel="stylesheet" href="../css/unified.css">
+</head>
+  <body>
+    <div class="app">
+      <aside class="sidebar" aria-label="Thanh điều hướng">
+        <div class="brand">LINEWATCH<small>Theo dõi ca sản xuất</small></div>
+        <span class="role">Công nhân vận hành</span>
+        <nav class="nav">
+          <a href="operator-line-status.html">Trạng thái dây chuyền</a>
+          <a href="operator-incident-create.html" class="active" aria-current="page">Báo sự cố</a>
+          <a href="operator-shift-incidents.html">Sự cố trong ca</a>
+        </nav>
+        <div class="shift">
+          <div><span data-shell="shift-date">Ca hiện tại</span></div>
+          <div data-shell="shift"><b>Ca 2 · 14:00–22:00</b></div>
+          <div>Tổ A · Xưởng 01</div>
+        </div>
+      </aside>
+
+      <main class="main">
+        <header class="topbar">
+          <h1>Tạo báo cáo sự cố</h1>
+          <div class="topbar-meta">
+            <span class="date" data-shell="date">—</span>
+          </div>
+        </header>
+
+        <section class="content">
+          <div class="page-head">
+            <div>
+              <h2>Tạo báo cáo sự cố</h2>
+              <p>Ghi đúng vị trí, mô tả hiện tượng và xem gợi ý phân loại trước khi gửi.</p>
+            </div>
+            <span class="pill warn">Bản nháp mới</span>
+          </div>
+
+          <div class="grid two-col">
+            <form class="panel form" id="incident-form" novalidate>
+              <h3>Thông tin sự cố</h3>
+              <p id="machine-context" class="machine-context" role="status" hidden></p>
+
+              <div class="fields">
+                <div class="field">
+                  <label for="lineId">Dây chuyền</label>
+                  <select id="lineId" required>
+                    <option value="">Chọn dây chuyền…</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="machineId">Máy</label>
+                  <select id="machineId" required>
+                    <option value="">Chọn máy…</option>
+                  </select>
+                </div>
+              </div>
+
+              <p id="machine-details" class="machine-details" hidden></p>
+
+              <div class="field">
+                <label for="createdAt">Thời điểm phát hiện</label>
+                <input id="createdAt" type="datetime-local" required>
+              </div>
+
+              <div class="field">
+                <label for="description">Mô tả hiện tượng</label>
+                <textarea id="description" rows="5" minlength="8" required placeholder="Ví dụ: máy rung mạnh, nhiệt độ tăng..."></textarea>
+                <span class="hint">Ít nhất 8 ký tự để AI-1 có thể phân loại.</span>
+              </div>
+
+              <div class="fields">
+                <div class="field"><label for="manual-category">Loại sự cố</label>
+                  <input id="manual-category" type="text" list="incident-categories" value="Cơ khí" autocomplete="off" required placeholder="Ví dụ: điện, cơ khí, chất lượng">
+                  <datalist id="incident-categories"><option value="Cơ khí"><option value="Điện"><option value="Chất lượng"><option value="Khác"></datalist>
+                  <span class="hint">Nhập một trong các loại: cơ khí, điện, chất lượng hoặc khác.</span></div>
+                <div class="field"><label for="manual-priority">Ưu tiên</label>
+                  <select id="manual-priority"><option value="medium">Trung bình</option><option value="high">Cao</option><option value="low">Thấp</option></select></div>
+              </div>
+
+              <div class="field">
+                <label for="impact">Mức ảnh hưởng</label>
+                <input id="impact" name="impact" type="text" maxlength="120" value="Dừng một phần" placeholder="Ví dụ: dừng một phần dây chuyền" required>
+                <span class="hint">Ghi ngắn gọn máy hoặc dây chuyền bị ảnh hưởng.</span>
+              </div>
+
+              <div class="field">
+                <label for="attachments">Ảnh kèm theo (mô phỏng)</label>
+                <input id="attachments" type="file" accept="image/png,image/jpeg" multiple>
+                <span class="hint" id="file-help">Tối đa 3 ảnh PNG/JPG, mỗi ảnh 5 MB. Bản demo chỉ lưu tên tệp; ảnh không được tải lên hay xem lại.</span>
+              </div>
+
+              <div id="form-error" class="error form-error" role="alert" hidden></div>
+
+              <div class="actions split">
+                <button type="button" class="btn" id="save-draft">Lưu nháp</button>
+                <button class="btn primary" type="submit">Gửi sự cố</button>
+              </div>
+            </form>
+
+            <aside class="panel ai" aria-label="AI-1 phân loại sự cố">
+              <h3>AI-1 · Phân loại sự cố</h3>
+              <p class="ai-state" id="ai-state">Nhập mô tả hiện tượng, AI-1 sẽ gợi ý loại lỗi và mức ưu tiên.</p>
+
+              <div class="ai-result">
+                <span class="result-label">Gợi ý loại lỗi</span>
+                <p class="ai-category" id="ai-category">Chưa phân loại</p>
+
+                <span class="result-label">Mức ưu tiên</span>
+                <p class="result-value"><span class="pill neutral" id="ai-priority">Chưa xác định</span></p>
+
+                <span class="result-label">Lý do</span>
+                <p class="result-value" id="ai-reason">Nhập mô tả rồi chọn “Tạo gợi ý”.</p>
+
+                <div class="confidence-row">
+                  <span>Độ tin cậy: <b id="ai-confidence">—</b></span>
+                  <div class="progress" style="flex:1;min-width:60px"><span id="ai-progress" style="width:0%"></span></div>
+                </div>
+              </div>
+
+              <div class="ai-actions">
+                <button class="btn primary" id="ai-accept" disabled>Chấp nhận</button>
+                <button class="btn" id="ai-edit" disabled>Sửa</button>
+                <button class="btn" id="ai-reject" disabled>Từ chối</button>
+                <button class="btn" id="ai-retry">Tạo gợi ý</button>
+              </div>
+
+              <p class="ai-feedback" id="ai-feedback"></p>
+              <p class="ai-note">AI-1 chỉ đề xuất — quyết định cuối cùng luôn là của bạn.</p>
+            </aside>
+          </div>
+        </section>
+      </main>
+    </div>
+    <script type="module" src="../js/app.js"></script>
+  </body>
+</html>
