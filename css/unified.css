@@ -1,3 +1,368 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:wght@500;600&display=swap');
+
+/* 1. Mau sang - moi trang */
+:root {
+  color-scheme: light;
+  --page: #f5f3ec;
+  --surface: #ffffff;
+  --surface-soft: #f0f5f1;
+  --sidebar: #182c23;
+  --sidebar-active: #2d493a;
+  --text: #24312a;
+  --muted: #68746a;
+  --border: #d6ded2;
+  --green: #32694f;
+  --green-hover: #27563f;
+  --green-tint: #e8f1e7;
+  --red: #a83f39;
+  --red-tint: #fff0ed;
+  --amber: #856017;
+  --amber-tint: #fbf2df;
+  --blue: #58798b;
+  --blue-tint: #e9f0f3;
+  --shadow: 0 12px 34px rgba(20, 42, 32, .08);
+  --font-chu: Inter, Arial, sans-serif;
+  --font-tieu-de: Lora, Georgia, serif;
+  /* Bí danh để các trang của cả ba thành viên dùng cùng một bảng màu. */
+  --bg: var(--page);
+  --bg-main: var(--page);
+  --side: var(--sidebar);
+  --bg-sidebar: var(--sidebar);
+  --sidebar-hover: var(--sidebar-active);
+  --ink: var(--text);
+  --text-main: var(--text);
+  --text-muted: var(--muted);
+  --line: var(--border);
+  --border-color: var(--border);
+  --white: var(--surface);
+  --green-primary: var(--green);
+  --green-soft: var(--green-tint);
+  --red-soft: var(--red-tint);
+  --amber-soft: var(--amber-tint);
+  --slate: var(--blue);
+  --slate-soft: var(--blue-tint);
+  --grey-soft: var(--surface-soft);
+  --red-alert: var(--red);
+  --yellow-warn: var(--amber);
+  --blue-info: var(--blue);
+  --ok: var(--green);
+  --ok-bg: var(--green-tint);
+  --warn-bg: var(--amber-tint);
+  --danger-bg: var(--red-tint);
+  --on-green: #fff;
+  --sans: var(--font-chu);
+  --serif: var(--font-tieu-de);
+  --shadow-sm: 0 1px 2px rgba(23, 58, 48, .05);
+  --shadow-md: var(--shadow);
+}
+
+/* 2. Mau toi - moi trang */
+html[data-theme='dark'] {
+  color-scheme: dark;
+  --page: #122019;
+  --surface: #1d3026;
+  --surface-soft: #263b2e;
+  --sidebar: #0d1913;
+  --sidebar-active: #345642;
+  --text: #eff6ef;
+  --muted: #b4c6b8;
+  --border: #405a47;
+  --green: #70bb91;
+  --green-hover: #91d6aa;
+  --green-tint: #284935;
+  --red: #f19a8c;
+  --red-tint: #512e2d;
+  --amber: #e9bf70;
+  --amber-tint: #4d3c23;
+  --blue: #a5c5d8;
+  --blue-tint: #2b4555;
+  --shadow: 0 12px 34px rgba(0, 0, 0, .22);
+  --on-green: #102218;
+}
+
+/* 3. Chu va the HTML chung */
+* {
+  box-sizing: border-box;
+}
+html {
+  font-family: Inter, Arial, sans-serif;
+  background: var(--page);
+  color: var(--text);
+}
+body {
+  margin: 0;
+  min-width: 320px;
+}
+[hidden] {
+  display: none !important;
+}
+button, input, textarea, select {
+  font: inherit;
+}
+button {
+  cursor: pointer;
+}
+button:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
+a {
+  color: var(--green);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+h1, h2, h3, p {
+  margin-top: 0;
+}
+h1, h2 {
+  font-family: Lora, Georgia, serif;
+  font-weight: 600;
+}
+h1 {
+  font-size: 30px;
+  line-height: 1.25;
+  margin-bottom: 10px;
+}
+h2 {
+  font-size: 21px;
+  margin-bottom: 18px;
+}
+h3 {
+  font-size: 16px;
+  margin-bottom: 14px;
+}
+/* 4. Nut, form, the, thong bao chung */
+.chu-phu {
+  color: var(--muted);
+}
+.chu-nho {
+  font-size: 14px;
+}
+.eyebrow {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+.nut {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 9px 18px;
+  background: var(--green);
+  color: var(--page);
+  font-weight: 600;
+  text-align: center;
+}
+html[data-theme='dark'] .nut {
+  color: #102218;
+}
+.nut:hover {
+  background: var(--green-hover);
+  text-decoration: none;
+}
+.nut.phu {
+  color: var(--text);
+  background: var(--surface);
+  border-color: var(--border);
+}
+.nut.phu:hover {
+  background: var(--surface-soft);
+}
+html[data-theme='dark'] .nut.phu {
+  background: var(--surface-soft);
+  color: var(--text);
+  border-color: var(--border);
+}
+html[data-theme='dark'] .nut.phu:hover,
+html[data-theme='dark'] .nut.phu:focus-visible {
+  background: var(--green-tint);
+  color: var(--text);
+  border-color: var(--green);
+}
+.nut.khong-nen {
+  color: var(--green);
+  background: transparent;
+  border-color: transparent;
+}
+.nut.nut-nho {
+  min-height: 34px;
+  padding: 6px 14px;
+  font-size: 13px;
+}
+.truong-nhap {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+.truong-nhap label {
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+}
+.truong-nhap input, .truong-nhap select, .truong-nhap textarea, .o-tim {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  padding: 10px 13px;
+  outline: none;
+}
+.truong-nhap textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+.truong-nhap input:focus, .truong-nhap select:focus, .truong-nhap textarea:focus, .o-tim:focus {
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px var(--green-tint);
+}
+.truong-nhap input[aria-invalid='true'] {
+  border-color: var(--red);
+}
+.loi-bieu-mau {
+  color: var(--red);
+  font-size: 14px;
+  min-height: 1em;
+}
+.the {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 22px;
+}
+.nhan {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 5px 11px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.nhan.green {
+  background: var(--green-tint);
+  color: var(--green);
+}
+.nhan.red {
+  background: var(--red-tint);
+  color: var(--red);
+}
+.nhan.amber {
+  background: var(--amber-tint);
+  color: var(--amber);
+}
+.nhan.blue {
+  background: var(--blue-tint);
+  color: var(--blue);
+}
+.thong-bao {
+  border-radius: 6px;
+  background: var(--surface-soft);
+  padding: 14px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.thong-bao.error {
+  background: var(--red-tint);
+  color: var(--red);
+}
+.thong-bao.success {
+  background: var(--green-tint);
+  color: var(--green);
+}
+.nut-giao-dien {
+  border: 1px solid var(--border);
+  color: var(--text);
+  background: var(--surface);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+.nut-giao-dien:hover {
+  background: var(--surface-soft);
+}
+.vung-thong-bao-noi {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  display: grid;
+  gap: 8px;
+  z-index: 30;
+  max-width: min(380px, calc(100vw - 40px));
+}
+.thong-bao-noi {
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+.thong-bao-noi.error {
+  border-left: 4px solid var(--red);
+}
+.thong-bao-noi.success {
+  border-left: 4px solid var(--green);
+}
+.dang-tai {
+  color: var(--muted);
+  padding: 22px;
+}
+.trong {
+  color: var(--muted);
+  padding: 38px 16px;
+  text-align: center;
+}
+.xep-doc {
+  display: grid;
+  gap: 14px;
+}
+.hang {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.hang.can-hai-ben {
+  justify-content: space-between;
+}
+.nhom-nut {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+/* 5. Chuyen dong nhe */
+@media (prefers-reduced-motion: no-preference) {
+  .nut, .nut-giao-dien, .muc-dieu-huong {
+    transition: background-color .16s ease, transform .16s ease;
+  }
+  .nut:active {
+    transform: translateY(1px);
+  }
+}
+
+
+/* ========= BO CUC CHUNG (NGUYEN) ========= */
 /*
  * GIAO DIỆN CHUNG LINEWATCH
  * Nạp SAU CSS riêng của từng trang. Token chỉ định nghĩa trong style.css.

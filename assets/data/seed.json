@@ -212,7 +212,7 @@
       "resolvedAt": null,
       "closedAt": null,
       "cancelledAt": null,
-      "downtimeStartAt": null,
+      "downtimeStartAt": "2026-10-20T15:22:00+07:00",
       "downtimeEndAt": null,
       "ai1": null,
       "notes": "Đã thử tắt/bật lại nhưng vẫn bị lệch.",

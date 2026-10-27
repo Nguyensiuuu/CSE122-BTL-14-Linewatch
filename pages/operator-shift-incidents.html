@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>LineWatch · Sự cố trong ca</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/screens.css">
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar" aria-label="Thanh điều hướng">
+        <div class="brand">LINEWATCH<small>Theo dõi ca sản xuất</small></div>
+        <span class="role">Công nhân vận hành</span>
+        <nav class="nav">
+          <a href="operator-line-status.html">Trạng thái dây chuyền</a>
+          <a href="operator-incident-create.html">Báo sự cố</a>
+          <a href="operator-shift-incidents.html" class="active" aria-current="page">Sự cố trong ca</a>
+        </nav>
+        <div class="shift">
+          <div><span data-shell="shift-date">Ca hiện tại</span></div>
+          <div data-shell="shift"><b>Ca 2 · 14:00–22:00</b></div>
+          <div>Tổ A · Xưởng 01</div>
+        </div>
+      </aside>
+
+      <main class="main">
+        <header class="topbar">
+          <h1>Sự cố trong ca</h1>
+          <div class="topbar-meta">
+            <span class="date" data-shell="date">—</span>
+            <button type="button" class="icon-btn" aria-label="Thông báo">
+              <span aria-hidden="true">ⓘ</span>
+            </button>
+            <span class="user" data-shell="user">Khách</span>
+          </div>
+        </header>
+
+        <section class="content">
+          <div class="page-head">
+            <div>
+              <h2>Danh sách sự cố trong ca</h2>
+              <p>Xem, lọc và cập nhật các sự cố do bạn tạo.</p>
+            </div>
+            <div class="head-aside">
+              <a class="btn primary" href="operator-incident-create.html">＋ Báo sự cố</a>
+            </div>
+          </div>
+
+          <section class="panel">
+            <div class="toolbar">
+              <label class="search">
+                <span class="hidden">Tìm kiếm sự cố</span>
+                <input id="incident-search" type="search" placeholder="Mô tả mã của sự cố ....">
+              </label>
+              <div class="chips">
+                <label class="field">
+                  <span class="hidden">Trạng thái</span>
+                  <select id="incident-filter">
+                    <option value="all">Tất cả trạng thái</option>
+                    <option value="new">Mới ghi nhận</option>
+                    <option value="in_progress">Đang xử lý</option>
+                    <option value="closed">Hoàn thành</option>
+                  </select>
+                </label>
+              </div>
+            </div>
+
+            <div class="table-wrap">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th scope="col">Mã sự cố</th>
+                    <th scope="col">Dây chuyền / Máy</th>
+                    <th scope="col">Mô tả</th>
+                    <th scope="col">Ưu tiên</th>
+                    <th scope="col">Trạng thái</th>
+                    <th scope="col" class="cell-right">Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody id="incident-table"></tbody>
+              </table>
+            </div>
+            <div id="incident-empty" class="empty hidden">Không có sự cố phù hợp.</div>
+          </section>
+        </section>
+      </main>
+    </div>
+    <script type="module" src="../js/app.js"></script>
+  </body>
+</html>
