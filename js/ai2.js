@@ -42,14 +42,22 @@ export async function summarizeShift(
     const inc = d.incidents.filter(
       (i) => i.shiftId === shiftId && incidentIds.includes(i.id),
     );
-    if (!inc.length)
+    // Việc còn mở từ các ca trước vẫn phải xuất hiện trong bản giao ca.
+    const inherited = d.incidents.filter((i) => {
+      const otherShift = d.shifts.find((s) => s.id === i.shiftId);
+      return otherShift && new Date(otherShift.startsAt) < new Date(sh.startsAt) &&
+        !["resolved", "closed", "cancelled"].includes(i.status);
+    });
+    if (!inc.length && !inherited.length)
       return fail("NO_EVIDENCE", "Không đủ dữ liệu để đưa ra đề xuất.");
 
     // Thống kê trạng thái sự cố
     const done = inc.filter((i) =>
       ["resolved", "closed"].includes(i.status),
     ).length;
-    const pend = inc.filter((i) => !["closed", "cancelled"].includes(i.status));
+    // Đã xử lý xong thì không còn là việc tồn, dù trưởng ca chưa đóng sự cố.
+    const currentPending = inc.filter((i) => !["resolved", "closed", "cancelled"].includes(i.status));
+    const pend = [...currentPending, ...inherited];
 
     // Lọc ra các dây chuyền có việc tồn và đếm số sự cố ưu tiên cao
     const lines = [...new Set(pend.map((i) => i.lineId))];
@@ -58,8 +66,8 @@ export async function summarizeShift(
     // 2. Tạo nội dung tóm tắt theo 2 biến thể văn bản (chẵn / lẻ)
     const text =
       variant % 2 === 0
-        ? `${sh.name} phát sinh ${inc.length} sự cố, ${done} đã hoàn thành. ${lines.length ? lines.join(", ") + " là khu vực cần theo dõi tiếp" : "Không còn khu vực cần theo dõi"}; còn ${pend.length} việc tồn${high ? `, trong đó ${high} ưu tiên cao` : ""}.`
-        : `Trong ${sh.name}: ${inc.length} sự cố ghi nhận, ${pend.length} chưa đóng${high ? ` (${high} ưu tiên cao)` : ""}. Ca sau cần ưu tiên ${lines.join(", ") || "các việc phát sinh mới"}.`;
+        ? `${sh.name} phát sinh ${inc.length} sự cố, ${done} đã hoàn thành. Còn ${currentPending.length} việc trong ca và ${inherited.length} việc từ ca trước cần bàn giao${high ? `, trong đó ${high} ưu tiên cao` : ""}. ${lines.length ? `Khu vực cần theo dõi: ${lines.join(", ")}.` : "Không còn việc cần theo dõi."}`
+        : `Trong ${sh.name}: ${inc.length} sự cố ghi nhận, ${done} đã hoàn thành. Ca sau tiếp nhận ${pend.length} việc còn mở (${currentPending.length} trong ca, ${inherited.length} từ ca trước)${high ? `; ${high} ưu tiên cao` : ""}. ${lines.length ? `Ưu tiên các dây chuyền ${lines.join(", ")}.` : ""}`;
 
     // 3. Trả về kết quả phân tích chuẩn cấu trúc
     return ok({
@@ -68,13 +76,13 @@ export async function summarizeShift(
         text,
         pendingIncidentIds: pend.map((i) => i.id),
       },
-      reason: `Tổng hợp ${inc.length} sự cố cùng ca ${sh.name}, lọc theo trạng thái chưa đóng/chưa hủy.`,
+      reason: `Tổng hợp ${inc.length} sự cố của ${sh.name} và ${inherited.length} việc còn mở từ ca trước; việc đã xử lý hoặc đóng không tính là tồn.`,
       confidence: Math.min(
         0.9,
         Math.round((0.5 + 0.05 * inc.length) * 100) / 100,
       ),
       source: "mock-rule",
-      references: inc.map((i) => i.id),
+      references: [...inc, ...inherited].map((i) => i.id),
     });
   } catch (e) {
     return fail("STORAGE_ERROR", e.message);

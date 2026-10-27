@@ -170,6 +170,13 @@ export async function mountShell() {
     return null;
   }
   const navRole = NAV[u.role] ? u.role : "supervisor";
+  const roleLabel =
+    {
+      admin: "Quản trị viên",
+      supervisor: "Trưởng ca",
+      operator: "Công nhân vận hành",
+      maintenance: "Kỹ thuật bảo trì",
+    }[u.role] || "Trưởng ca";
 
   const sh = await getShifts();
   const info = sh.ok
@@ -193,7 +200,7 @@ export async function mountShell() {
         <aside class="side">
             <div class="brand">LINEWATCH</div>
             <div class="tag">Theo dõi ca sản xuất</div>
-            <span class="role">${navRole === "admin" ? "Quản trị viên" : "Trưởng ca"}</span>
+            <span class="role">${roleLabel}</span>
             <nav aria-label="Điều hướng chính">
                 ${NAV[navRole].map(([k, h, l, o]) => `<a href="${h}"${o ? ` data-ext="${o}"` : ""}${k === active ? ` aria-current="page" class="on"` : ""}>${l}</a>`).join("")}
             </nav>

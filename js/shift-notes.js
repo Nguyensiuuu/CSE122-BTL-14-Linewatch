@@ -1,6 +1,7 @@
 // Sơn: ghi chú bàn giao (shiftNotes). Bản đã chốt (saved) chỉ đổi bằng phiên bản mới hoặc lưu trữ.
 import { mutate, wrap, LwError as E } from "./store.js";
 import { now } from "./incident-flow.js";
+import { getActiveSession } from './auth.js';
 
 /**
  * Lấy danh sách ghi chú bàn giao, có thể lọc theo ca làm việc (shiftId)
@@ -13,12 +14,10 @@ export const getShiftNotes = (shiftId) =>
  */
 export const saveShiftNote = (p) =>
   mutate((d) => {
-    // 1. Kiểm tra nội dung ghi chú không được để trống
-    const text = (p.text || "").trim();
-    if (!text)
-      throw new E("VALIDATION_ERROR", "Nội dung bàn giao không được để trống");
-
-    // 2. Kiểm tra trạng thái ghi chú hợp lệ
+    const session = getActiveSession();
+    if (session?.role !== 'supervisor' || session.userId !== p.supervisorId)
+      throw new E('FORBIDDEN', 'Chỉ trưởng ca đang đăng nhập được lưu bản giao ca của mình.');
+    // 1. Kiểm tra trạng thái ghi chú hợp lệ
     if (!["draft", "saved", "archived"].includes(p.status)) {
       throw new E("VALIDATION_ERROR", "Trạng thái ghi chú không hợp lệ");
     }
@@ -42,6 +41,12 @@ export const saveShiftNote = (p) =>
     // 6. Tìm ghi chú cũ (nếu đang cập nhật)
     let n = p.id ? d.shiftNotes.find((x) => x.id === p.id) : null;
     if (p.id && !n) throw new E("NOT_FOUND", `Không tìm thấy ghi chú ${p.id}`);
+    if (p.status === "archived" && !n)
+      throw new E("INVALID_TRANSITION", "Chỉ lưu trữ được bản bàn giao đã tạo.");
+    // Hủy bản nháp là lưu trữ, không lấy ô nhập vừa xóa để ghi đè lịch sử.
+    const text = p.status === "archived" ? n.text : (p.text || "").trim();
+    if (!text)
+      throw new E("VALIDATION_ERROR", "Nội dung bàn giao không được để trống");
 
     // 7. Kiểm tra quy tắc chuyển đổi trạng thái (State Transition)
     // - Nếu không phải nháp (draft), ngoại trừ trường hợp chuyển từ 'saved' sang 'archived', thì không cho phép sửa trực tiếp mà bắt buộc phải tạo phiên bản mới.
@@ -72,7 +77,7 @@ export const saveShiftNote = (p) =>
     // 9. Cập nhật thông tin ghi chú
     Object.assign(n, {
       text,
-      pendingIncidentIds: ids,
+      pendingIncidentIds: p.status === "archived" ? n.pendingIncidentIds : ids,
       status: p.status,
       ai2: p.ai2 ?? n.ai2 ?? null,
       updatedAt: t,

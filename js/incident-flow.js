@@ -6,6 +6,11 @@
  */
 
 import { mutate, wrap, LwError as E } from "./store.js";
+import { getActiveSession } from './auth.js';
+const requireSupervisor = () => {
+  if (getActiveSession()?.role !== 'supervisor')
+    throw new E('FORBIDDEN', 'Đăng nhập vai trò trưởng ca để thực hiện thao tác này.');
+};
 
 // Danh sách các trạng thái sự cố được coi là "Đang mở"
 export const OPEN = ["new", "accepted", "assigned", "in_progress"];
@@ -22,7 +27,7 @@ export const resolveShift = (d) => {
   );
   if (hit) return { shift: hit, demo: false };
   const near = [...d.shifts].sort((a, b) =>
-    a.startsAt.localeCompare(b.startsAt),
+    b.startsAt.localeCompare(a.startsAt),
   )[0];
   return { shift: near || null, demo: true };
 };
@@ -50,6 +55,7 @@ const need = (i, st, verb) => {
 // Tiếp nhận sự cố (Chuyển từ 'new' -> 'accepted')
 export const acceptIncident = (id) =>
   mutate((d) => {
+    requireSupervisor();
     const i = find(d, id);
     need(i, "new", "tiếp nhận");
     i.status = "accepted";
@@ -60,6 +66,7 @@ export const acceptIncident = (id) =>
 // Phân công kỹ thuật viên xử lý sự cố (Chuyển từ 'accepted' -> 'assigned')
 export const assignIncident = (id, assigneeId) =>
   mutate((d) => {
+    requireSupervisor();
     const i = find(d, id);
     need(i, "accepted", "phân công");
 
@@ -102,6 +109,7 @@ export const assignIncident = (id, assigneeId) =>
 // Đóng sự cố hoàn toàn (Chuyển từ 'resolved' -> 'closed')
 export const closeIncident = (id) =>
   mutate((d) => {
+    requireSupervisor();
     const i = find(d, id);
     need(i, "resolved", "xác nhận hoàn thành");
     i.status = "closed";
@@ -130,11 +138,12 @@ const FIELD = {
 };
 
 const RK = "linewatch.v1.notifRead";
+const khoaDaDoc = () => `${RK}.${getActiveSession()?.userId || 'khach'}`;
 
 // Lấy danh sách ID thông báo đã đọc từ localStorage
 const readSet = () => {
   try {
-    return JSON.parse(localStorage.getItem(RK) || "[]");
+    return JSON.parse(localStorage.getItem(khoaDaDoc()) || "[]");
   } catch {
     return [];
   }
@@ -144,11 +153,17 @@ const readSet = () => {
 export const getNotifications = () =>
   wrap((d) => {
     const rd = readSet(),
-      { shift: sh } = resolveShift(d);
-    if (!sh) return [];
+      { shift: sh } = resolveShift(d),
+      taiKhoan = getActiveSession();
+    if (!sh || !taiKhoan) return [];
 
     return d.incidents
-      .filter((i) => i.shiftId === sh.id)
+      .filter((i) => {
+        if (taiKhoan.role === 'maintenance') return i.assignedToId === taiKhoan.userId;
+        if (taiKhoan.role === 'operator') return i.reportedById === taiKhoan.userId;
+        // Trưởng ca vẫn nhận việc còn mở từ ca trước để không mất thông báo khi đổi ca.
+        return i.shiftId === sh.id || OPEN.includes(i.status);
+      })
       .map((i) => ({
         id: `${i.id}:${i.status}`,
         incidentId: i.id,
@@ -171,7 +186,7 @@ export const markNotificationsRead = async (ids) => {
     const r = await getNotifications();
     const all = r.data.map((n) => n.id);
     localStorage.setItem(
-      RK,
+      khoaDaDoc(),
       JSON.stringify([...new Set([...readSet(), ...(ids || all)])]),
     );
     window.dispatchEvent(new Event("linewatch:data-changed"));

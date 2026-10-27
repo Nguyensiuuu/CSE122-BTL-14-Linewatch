@@ -15,7 +15,12 @@ const root = document.getElementById("view");
 const dlg = document.getElementById("dlg");
 
 // Hàm lấy định dạng ngày (YYYY-MM-DD) từ chuỗi ISO
-const day = (iso) => iso.slice(0, 10);
+const day = (iso) => {
+  const parts = Object.fromEntries(new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Ho_Chi_Minh', year: 'numeric', month: '2-digit', day: '2-digit'
+  }).formatToParts(new Date(iso)).filter(part => part.type !== 'literal').map(part => [part.type, part.value]));
+  return `${parts.year}-${parts.month}-${parts.day}`;
+};
 // Trạng thái của báo cáo
 const RS = { draft: "Bản nháp", ready: "Sẵn sàng", archived: "Đã lưu trữ" };
 
@@ -87,6 +92,11 @@ function calc() {
   };
 }
 
+function goiYDaDuyet(machineId) {
+  return S.tasks.find(task => ['accepted', 'edited'].includes(task.ai3?.status) &&
+    S.incidents.find(incident => incident.id === task.incidentId)?.machineId === machineId);
+}
+
 // ==========================================
 // 3. VẼ GIAO DIỆN (DRAW)
 // ==========================================
@@ -95,13 +105,7 @@ function draw() {
   const top = c.bm[0];
   const ids = c.list.map((i) => i.id);
 
-  const ai3 =
-    top &&
-    S.tasks.find(
-      (t) =>
-        t.ai3 &&
-        S.incidents.find((i) => i.id === t.incidentId)?.machineId === top[0],
-    );
+  const ai3 = top && goiYDaDuyet(top[0]);
 
   root.innerHTML = `
     <h1>Báo cáo thời gian dừng máy</h1>
@@ -154,13 +158,13 @@ function draw() {
       <!-- Biểu đồ phân tích và Nhận định AI -->
       <div class="dr-g">
         <section class="card">
-          <h3>Thời gian dừng theo máy</h3>
-          ${c.bm.map(([m, v], k) => `<div class="bar"><span>${m}</span><div><i class="${k === 0 ? "r" : k < 3 ? "a" : ""}" style="width:${(v / c.bm[0][1]) * 100}%"></i></div><b>${v} phút</b></div>`).join("")}
+          <h2>Thời gian dừng theo máy</h2>
+          ${c.bm.map(([m, v], k) => `<div class="bar"><span>${esc(m)}</span><div><i class="${k === 0 ? "r" : k < 3 ? "a" : ""}" style="width:${c.bm[0][1] ? (v / c.bm[0][1]) * 100 : 0}%"></i></div><b>${v} phút</b></div>`).join("")}
         </section>
         
         <aside class="card ai">
-          <h3>Nhận định hỗ trợ</h3>
-          <p><b>${top[0]} chiếm ${Math.round((top[1] / c.tot) * 100)}% thời gian dừng của ca.</b></p>
+          <h2>Nhận định hỗ trợ</h2>
+          <p><b>${esc(top[0])} chiếm ${c.tot ? Math.round((top[1] / c.tot) * 100) : 0}% thời gian dừng của ca.</b></p>
           <p>${ai3 ? esc(ai3.ai3.suggestion?.pattern || ai3.ai3.reason || "Có kết quả AI-3 đã lưu.") : "Chưa có kết quả AI-3 đã lưu cho máy này (báo cáo chỉ đọc kết quả đã lưu)."}</p>
           <small>Đề xuất báo cáo</small>
           <ul>
@@ -168,7 +172,7 @@ function draw() {
             ${c.bm[1] ? `<li>Theo dõi ${c.bm[1][0]} trong ca tiếp theo</li>` : ""}
           </ul>
           <div class="acts">
-            <button class="btn" id="inc" aria-pressed="${inc}">${inc ? "✓ Đã đưa vào báo cáo" : "Đưa vào báo cáo"}</button>
+            <button class="btn" id="inc" aria-pressed="${inc}"${ai3 ? '' : ' disabled'}>${ai3 ? inc ? "✓ Đã chọn gợi ý AI-3" : "Đưa gợi ý vào báo cáo" : "Chưa có gợi ý AI-3 đã chấp nhận"}</button>
           </div>
         </aside>
       </div>`
@@ -176,13 +180,13 @@ function draw() {
 
     <!-- Danh sách báo cáo đã lưu -->
     <section class="card saved">
-      <h3>Báo cáo đã lưu</h3>
+      <h2>Báo cáo đã lưu</h2>
       ${
         R.length
           ? R.map(
               (r) => `
         <div class="row">
-          <strong>${r.id} · Downtime ${esc((S.shifts.find((s) => s.id === r.shiftId) || {}).name || r.shiftId)} · ${RS[r.status]}</strong>
+          <strong>${r.id} · Dừng máy ${esc((S.shifts.find((s) => s.id === r.shiftId) || {}).name || r.shiftId)} · ${RS[r.status]}</strong>
           <span class="sub" style="margin:0">${r.totalDowntimeMinutes} phút</span>
           <button class="btn link" data-v="${r.id}">Xem</button>
           ${r.status === "archived" ? "" : `<button class="btn link" data-e="${r.id}">Sửa bộ lọc</button><button class="btn danger" data-x="${r.id}">Lưu trữ</button>`}
@@ -229,6 +233,7 @@ root.addEventListener("change", (e) => {
   }
   if (i === "s") F.shiftId = e.target.value;
   if (i === "l") F.line = e.target.value;
+  if (i) inc = false;
   if (i) draw();
 });
 
@@ -240,9 +245,11 @@ root.addEventListener("submit", async (e) => {
   const r = await saveReport({
     id: editId || undefined,
     shiftId: c.shift.id,
+    lineId: F.line || null,
     from: c.shift.startsAt,
     to: c.shift.endsAt,
     incidentIds: c.list.map((i) => i.id),
+    ai3TaskId: inc && c.bm[0] ? goiYDaDuyet(c.bm[0][0])?.id : null,
     status: "draft",
   });
 
@@ -265,6 +272,8 @@ root.addEventListener("click", async (e) => {
     editId = r.id;
     F.date = day(r.from);
     F.shiftId = r.shiftId;
+    F.line = r.lineId || '';
+    inc = Boolean(r.ai3TaskId);
     return draw();
   }
 
@@ -284,6 +293,7 @@ root.addEventListener("click", async (e) => {
     dlg.querySelector("div").innerHTML = `
       <h3>${r.id}</h3>
       <p>${RS[r.status]} · ${r.totalDowntimeMinutes} phút · ${r.incidentIds.length} sự cố</p>
+      ${r.ai3TaskId ? `<p>Gợi ý AI-3 đã lưu từ công việc ${esc(r.ai3TaskId)}: ${esc(r.ai3Summary || 'Chưa có nội dung')}</p>` : ''}
       <ul>${r.incidentIds.map((i) => `<li>${i} · ${esc((S.incidents.find((x) => x.id === i) || {}).title || "")}</li>`).join("")}</ul>`;
     dlg.showModal();
   }

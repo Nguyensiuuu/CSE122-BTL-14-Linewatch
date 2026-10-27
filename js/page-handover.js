@@ -11,6 +11,7 @@ import {
 } from "./layout.js";
 import { OPEN } from "./incident-flow.js";
 import { getShiftNotes, saveShiftNote, summarizeShift } from "./api.js";
+import { openModal } from "./modules/shared/ui.js";
 
 const root = document.getElementById("view");
 let U,
@@ -20,13 +21,14 @@ let U,
   aiState = "idle",
   variant = 0,
   editing = false;
+let dangLuu = false;
+let noiDungAIDaChen = '';
 
 // Lọc các việc còn tồn (đang mở hoặc đã xử lý trong ca hiện tại)
 const pend = () =>
   S.incidents.filter(
     (i) =>
-      OPEN.includes(i.status) ||
-      (i.status === "resolved" && i.shiftId === S.shift.id),
+      OPEN.includes(i.status),
   );
 
 // Tạo danh sách các dòng ghi chú sự cố
@@ -55,10 +57,13 @@ async function load() {
   }
 
   note = [...n.data].reverse().find((x) => x.status !== "archived") || null;
+  ai = note?.ai2 || null;
+  noiDungAIDaChen = ai?.appliedText || '';
+  aiState = ai ? ai.status === 'rejected' ? 'rejected' : 'done' : 'idle';
   draw(false);
 
   // Nếu AI chưa chạy, tiến hành gọi AI tóm tắt ca
-  if (aiState === "idle" && !note?.ai2) runAI();
+  if (aiState === "idle" && note?.status !== "saved") runAI();
 }
 
 // ==========================================
@@ -90,6 +95,10 @@ async function runAI() {
 // 3. GIAO DIỆN KHU VỰC AI PANEL
 // ==========================================
 function aiPanel() {
+  if (note?.status === 'saved')
+    return ai?.status === 'rejected'
+      ? '<p>Gợi ý AI-2 đã bị từ chối trong bản bàn giao này. Nội dung đã chốt chỉ đọc.</p>'
+      : `<p>${ai?.suggestion ? `Đã lưu quyết định ${ai.status === 'edited' ? 'sửa' : 'chấp nhận'} gợi ý AI-2 cùng bản bàn giao.` : 'Bản bàn giao này không dùng gợi ý AI-2.'} Tạo phiên bản mới nếu cần sửa.</p>`;
   if (aiState === "loading") return skel(3);
   if (aiState === "error")
     return `<p role="alert">${esc(ai.error.message)}</p><div class="acts"><button class="btn" data-a="retry">Thử lại</button><button class="btn" data-a="manual">Nhập tay</button></div>`;
@@ -125,7 +134,8 @@ function aiPanel() {
 function draw(keep = true) {
   const prev = keep ? document.getElementById("txt")?.value : undefined;
   const locked = note?.status === "saved";
-  const nx = S.shift.name.replace(/\d+/, (m) => +m + 1);
+  const soCa = Number(S.shift.name.match(/\d+/)?.[0]);
+  const nx = soCa === 3 ? 'Ca 1 (ngày tiếp theo)' : Number.isFinite(soCa) ? `Ca ${soCa + 1}` : 'ca tiếp theo';
   const p = pend();
 
   root.innerHTML = `
@@ -133,8 +143,8 @@ function draw(keep = true) {
     <p class="sub">Chốt việc còn tồn và nội dung cần theo dõi cho ca tiếp theo</p>
     <div class="ho">
       <section class="card">
-        <h3>Ghi chú bàn giao · ${esc(S.shift.name)} → ${esc(nx)}</h3>
-        <p class="sub" style="margin-top:14px">Việc còn tồn</p>
+        <h2>Ghi chú bàn giao · ${esc(S.shift.name)} → ${esc(nx)}</h2>
+        <p class="sub" style="margin-top:14px">Việc đang mở, gồm cả ca trước</p>
         <div class="pend">${p.length ? p.map((i) => `<div class="li">${pill(PRI[i.priority], 1)}<span>${i.id} · ${i.machineId} · ${STAT[i.status][0]}</span></div>`).join("") : '<div class="state">Không còn việc tồn.</div>'}</div>
         
         <label for="txt" class="sub">Nội dung bàn giao</label>
@@ -144,11 +154,11 @@ function draw(keep = true) {
         <div class="foot">
           ${locked ? '<button class="btn pri" data-a="newver">Tạo phiên bản mới</button>' : '<button class="btn danger" data-a="cancel">Hủy bản nháp</button><span class="sp"></span><button class="btn" data-a="draft">Lưu nháp</button><button class="btn pri" data-a="final">Chốt bàn giao</button>'}
         </div>
-        <p class="sub">Bàn giao đã chốt chỉ mở lại bằng phiên bản mới; lưu người sửa và thời điểm.${note ? ` Phiên bản hiện tại: ${note.id} (${note.status === "saved" ? "đã chốt" : "nháp"}).` : ""}</p>
+        <p class="sub">Bàn giao đã chốt chỉ mở lại bằng phiên bản mới; lưu người sửa và thời điểm.${note?.id ? ` Phiên bản hiện tại: ${esc(note.id)} (${note.status === "saved" ? "đã chốt" : "nháp"}).` : ""}</p>
       </section>
       
       <aside class="card ai" aria-label="AI-2 Tóm tắt ca">
-        <h3>AI-2 · Tóm tắt ca</h3>
+        <h2>AI-2 · Tóm tắt ca</h2>
         ${aiPanel()}
       </aside>
     </div>`;
@@ -162,7 +172,11 @@ const say = (m, t) => {
 // 5. HÀM LƯU GHI CHÚ BÀN GIAO
 // ==========================================
 async function save(status) {
+  if (dangLuu) return;
+  dangLuu = true;
   const text = document.getElementById("txt").value;
+  root.querySelectorAll('[data-a="draft"], [data-a="final"], [data-a="cancel"]').forEach(nut => nut.disabled = true);
+  try {
   const r = await saveShiftNote({
     id: note?.id,
     shiftId: S.shift.id,
@@ -170,10 +184,9 @@ async function save(status) {
     text,
     pendingIncidentIds: pend().map((i) => i.id),
     status,
-    ai2:
-      ai && ai.suggestion
-        ? { ...ai, status: ai.status || "accepted" }
-        : undefined,
+    ai2: ai && ['accepted', 'edited', 'rejected'].includes(ai.status)
+      ? { ...ai }
+      : undefined,
   });
 
   if (!r.ok) {
@@ -182,6 +195,7 @@ async function save(status) {
   }
 
   note = r.data;
+  if (status === 'saved' && ai?.status) aiState = ai.status === 'rejected' ? 'rejected' : 'done';
   say(
     status === "saved"
       ? "Đã chốt bàn giao"
@@ -189,8 +203,12 @@ async function save(status) {
         ? "Đã lưu nháp"
         : "Đã hủy bản nháp",
   );
-  if (status === "archived") note = null;
+  if (status === "archived") { note = null; ai = null; aiState = 'idle'; }
   draw(false);
+  } finally {
+    dangLuu = false;
+    root.querySelectorAll('[data-a="draft"], [data-a="final"], [data-a="cancel"]').forEach(nut => nut.disabled = false);
+  }
 }
 
 // ==========================================
@@ -225,28 +243,43 @@ root.addEventListener("click", async (e) => {
     } else {
       ai.status = "accepted";
     }
-    const body = `${sg.text}\n${bullets(sg.pendingIncidentIds)
+    const body = `${sg.text}\n${bullets([...new Set([...sg.pendingIncidentIds, ...pend().map(i => i.id)])])
       .map((b, k) => `${k + 1}. ${b}`)
       .join("\n")}`;
+    const noiDungHienTai = t.value.trim();
+    const noiDungGoc = noiDungAIDaChen && noiDungHienTai.endsWith(noiDungAIDaChen)
+      ? noiDungHienTai.slice(0, -noiDungAIDaChen.length).trimEnd()
+      : noiDungHienTai;
     note = {
       ...(note || {}),
-      text: t.value.trim() ? `${t.value.trim()}\n${body}` : body,
+      text: noiDungGoc ? `${noiDungGoc}\n${body}` : body,
     };
+    noiDungAIDaChen = body;
+    ai.appliedText = body;
     aiState = "done";
     draw(false);
     return;
   }
 
   if (a === "reject") {
-    if (ai) ai.status = "rejected";
+    const current = document.getElementById('txt')?.value.trim() || '';
+    if (noiDungAIDaChen && current.endsWith(noiDungAIDaChen)) {
+      note = { ...(note || {}), text: current.slice(0, -noiDungAIDaChen.length).trimEnd() };
+      document.getElementById('txt').value = note.text;
+    }
+    noiDungAIDaChen = '';
+    if (ai) { ai.status = "rejected"; ai.appliedText = ''; }
     aiState = "rejected";
     return draw();
   }
 
   if (a === "draft") return save("draft");
   if (a === "final") {
-    if (confirm("Chốt bàn giao? Sau khi chốt chỉ có thể tạo phiên bản mới."))
-      return save("saved");
+    const ketQua = await openModal({
+      title: 'Chốt bàn giao', description: 'Sau khi chốt chỉ có thể tạo phiên bản mới.',
+      confirmLabel: 'Chốt bàn giao'
+    });
+    if (ketQua.confirmed) return save("saved");
     return;
   }
   if (a === "cancel") {
@@ -254,11 +287,17 @@ root.addEventListener("click", async (e) => {
       document.getElementById("txt").value = "";
       return;
     }
-    if (confirm("Hủy bản nháp này?")) return save("archived");
+    const ketQua = await openModal({
+      title: 'Hủy bản nháp', description: 'Bản nháp hiện tại sẽ chuyển sang lưu trữ.',
+      confirmLabel: 'Hủy bản nháp', danger: true
+    });
+    if (ketQua.confirmed) return save("archived");
   }
   if (a === "newver") {
     note = { text: note.text, status: "draft" };
+    ai = null; aiState = 'idle'; editing = false; noiDungAIDaChen = '';
     draw(false);
+    runAI();
   }
 });
 

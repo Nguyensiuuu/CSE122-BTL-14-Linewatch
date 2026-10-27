@@ -1,6 +1,7 @@
 // Khung 11: CHỈ ĐỌC — không có thao tác ghi nào trong tệp này.
-import { mountShell, snapshot, esc, hhmm, errBox, skel } from "./layout.js";
+import { mountShell, snapshot, esc, hhmm, dmy, STAT, errBox, skel } from "./layout.js";
 import { OPEN } from "./incident-flow.js";
+import { getMachineHistory } from "./api.js";
 
 const root = document.getElementById("view");
 
@@ -15,7 +16,8 @@ const ST = {
 let S,
   q = "",
   ln = "",
-  act = true;
+  act = true,
+  selectedMachine = "";
 
 // ==========================================
 // 1. TẢI DỮ LIỆU BAN ĐẦU (LOAD)
@@ -62,7 +64,7 @@ function draw() {
       .filter(Boolean)
       .sort()
       .pop();
-    return t ? hhmm(t) : "—";
+    return t ? `${dmy(t)} · ${hhmm(t)}` : "—";
   };
 
   // Dựng cấu trúc HTML trang danh mục máy
@@ -108,7 +110,7 @@ function draw() {
                 <td><span class="pill ${ST[m.status][1]}">${ST[m.status][0]}</span></td>
                 <td>${S.incidents.filter((i) => i.machineId === m.id && OPEN.includes(i.status)).length}</td>
                 <td>${last(m)}</td>
-                <td><a href="maintenance-machine-history.html?machineId=${m.id}">Xem →</a></td>
+                <td><button type="button" class="btn link" data-machine="${esc(m.id)}" aria-label="Xem lịch sử máy ${esc(m.id)}">Xem →</button></td>
               </tr>`,
               )
               .join("")}
@@ -116,7 +118,31 @@ function draw() {
         </table>`
           : '<div class="state">Không có máy phù hợp bộ lọc.</div>'
       }
-    </div>`;
+    </div>
+    <section id="machine-detail" class="card machine-detail" aria-live="polite" ${selectedMachine ? "" : "hidden"}>
+      <div class="section-head"><h2>Lịch sử máy</h2><button type="button" class="btn" data-close-machine>Đóng</button></div>
+      <div id="machine-detail-body" class="dang-tai">Đang tải lịch sử…</div>
+    </section>`;
+  if (selectedMachine) showMachine(selectedMachine);
+}
+
+// Quản trị viên xem lịch sử ngay trong danh mục; trang bảo trì chỉ dành cho kỹ thuật viên.
+async function showMachine(id) {
+  const region = document.getElementById("machine-detail-body");
+  if (!region) return;
+  const response = await getMachineHistory(id);
+  if (!region.isConnected || selectedMachine !== id) return;
+  if (!response.ok) {
+    region.innerHTML = `<p role="alert">${esc(response.error.message)}</p><button type="button" class="btn" data-machine="${esc(id)}">Thử lại</button>`;
+    return;
+  }
+  const { machine, line, incidents, tasks } = response.data;
+  region.innerHTML = `<p><strong>${esc(machine.id)} · ${esc(machine.name)}</strong> · ${esc(line?.name || machine.lineId)} · ${esc(ST[machine.status]?.[0] || machine.status)}</p>
+    <h3>Sự cố liên quan (${incidents.length})</h3>
+    ${incidents.length ? `<div class="scroll"><table><thead><tr><th>Mã sự cố</th><th>Nội dung</th><th>Trạng thái</th><th>Báo lúc</th><th>Biện pháp bảo trì</th></tr></thead><tbody>${incidents.map(i => {
+      const task = tasks.find(t => t.incidentId === i.id);
+      return `<tr><td>${esc(i.id)}</td><td>${esc(i.title)}</td><td>${esc(STAT[i.status]?.[0] || i.status)}</td><td>${i.reportedAt ? `${dmy(i.reportedAt)} · ${hhmm(i.reportedAt)}` : "—"}</td><td>${esc(task?.action || "Chưa ghi nhận")}</td></tr>`;
+    }).join("")}</tbody></table></div>` : '<p>Máy này chưa có sự cố.</p>'}`;
 }
 
 // ==========================================
@@ -144,6 +170,18 @@ root.addEventListener("change", (e) => {
 
 // Sự kiện click (nút thử lại khi lỗi hoặc nút lọc đang hoạt động)
 root.addEventListener("click", (e) => {
+  const machine = e.target.closest("[data-machine]")?.dataset.machine;
+  if (machine) {
+    selectedMachine = machine;
+    draw();
+    document.getElementById("machine-detail")?.scrollIntoView({ block: "nearest" });
+    return;
+  }
+  if (e.target.closest("[data-close-machine]")) {
+    selectedMachine = "";
+    draw();
+    return;
+  }
   if (e.target.dataset.retry !== undefined) load();
   if (e.target.id === "act") {
     act = !act;

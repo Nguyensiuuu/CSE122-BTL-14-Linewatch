@@ -99,7 +99,7 @@ async function render() {
     <div class="sd-grid">
       <!-- Biểu đồ nhịp sự cố -->
       <section class="card">
-        <h3>Nhịp sự cố theo thời gian</h3>
+        <h2>Nhịp sự cố theo thời gian</h2>
         ${
           cur.length
             ? `<div class="chart" role="img" aria-label="Số sự cố theo khung giờ của ca">
@@ -115,13 +115,13 @@ async function render() {
 
       <!-- Danh sách việc tồn từ ca trước -->
       <section class="card">
-        <h3>Việc còn tồn từ ca trước</h3>
+        <h2>Việc còn tồn từ ca trước</h2>
         ${
           back.length
             ? back
                 .map(
                   (i) =>
-                    `<div class="li">${pill(PRI[i.priority], 1)}<span>${i.machineId} · ${esc(i.title)}</span></div>`,
+                    `<div class="li">${pill(PRI[i.priority], 1)}<a href="supervisor-incident-board.html?shiftId=${encodeURIComponent(i.shiftId)}">${esc(i.machineId)} · ${esc(i.title)} → Mở ca này</a></div>`,
                 )
                 .join("")
             : '<div class="state">Không có việc tồn.</div>'
@@ -131,7 +131,7 @@ async function render() {
 
     <!-- Bảng sự cố cần chú ý -->
     <section class="card att-card">
-      <h3>Sự cố cần chú ý</h3>
+      <h2>Sự cố cần chú ý</h2>
       ${
         att.length
           ? att
