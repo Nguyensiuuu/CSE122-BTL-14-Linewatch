@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Đăng nhập | LineWatch</title>
+  <script src="../../js/theme.js"></script>
+  <link rel="stylesheet" href="../../css/style.css">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="../../css/unified.css">
+</head>
+<body>
+  <div class="bo-cuc-tai-khoan">
+    <div class="anh-tai-khoan"><img src="../../assets/images/linewatch-auth-hero.png" alt=""></div>
+    <main class="vung-bieu-mau">
+      <button type="button" class="nut-giao-dien" data-theme-toggle>◐ Chế độ tối</button>
+      <div class="cot-tai-khoan">
+        <section class="the-tai-khoan">
+          <h1>Đăng nhập</h1>
+          <p class="intro">Sử dụng tài khoản nội bộ để tiếp tục</p>
+          <form id="login-form" novalidate>
+            <div class="truong-nhap">
+              <label for="email">Email</label>
+              <input id="email" name="email" type="email" value="nguyen@linewatch.vn" required>
+            </div>
+            <div class="truong-nhap">
+              <label for="password">Mật khẩu</label>
+              <input id="password" name="password" type="password" placeholder="Mật khẩu demo" required>
+            </div>
+            <p id="login-error" class="loi-bieu-mau" role="alert" hidden></p>
+            <div class="tuy-chon-tai-khoan">
+              <label><input id="remember" type="checkbox"> Ghi nhớ đăng nhập</label>
+              <a href="../15-quen-mat-khau/forgot-password.html">Quên mật khẩu? →</a>
+            </div>
+            <button class="nut day-du" type="submit">Đăng nhập</button>
+          </form>
+          <p class="lien-ket-tai-khoan"><a href="../register.html" id="register-link">Chưa có tài khoản? Đăng ký →</a></p>
+          <hr class="vach-tai-khoan">
+          <p class="chu-nho chu-phu">Trạng thái hệ thống</p>
+          <span class="nhan green">Kết nối ổn định</span>
+          <p class="chu-thich-tai-khoan">Phiên bản demo BTL-14 · Mật khẩu demo: 123456</p>
+        </section>
+        <div class="vai-tro-mau">
+          <p>XEM LUỒNG DEMO THEO VAI TRÒ</p>
+          <div class="cac-vai-tro">
+            <button type="button" data-demo-role="operator">Công nhân</button>
+            <button type="button" data-demo-role="supervisor">Trưởng ca</button>
+            <button type="button" data-demo-role="maintenance">Bảo trì</button>
+            <button type="button" data-demo-role="admin">Quản trị</button>
+          </div>
+          <p class="chu-thich-tai-khoan">Chọn vai trò để xem hành trình làm việc tương ứng.</p>
+        </div>
+      </div>
+    </main>
+  </div>
+  <div class="vung-thong-bao-noi" id="toasts" aria-live="polite"></div>
+  <script type="module" src="script.js"></script>
+</body>
+</html>

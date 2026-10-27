@@ -1,0 +1,96 @@
+/* Trang 15-quen-mat-khau - CSS riêng. Màu/nút/form cơ bản ở ../../css/style.css. */
+.lien-ket-tai-khoan {
+  margin: 14px 0 16px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.bo-cuc-tai-khoan {
+  display: grid;
+  grid-template-columns: 53% 47%;
+  min-height: 100vh;
+  background: var(--page);
+}
+.anh-tai-khoan {
+  min-height: 100vh;
+  overflow: hidden;
+  background: #071b21;
+}
+.anh-tai-khoan img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 100vh;
+  object-fit: cover;
+  object-position: center;
+}
+.vung-bieu-mau {
+  display: grid;
+  place-items: center;
+  padding: 60px 34px 30px;
+  position: relative;
+}
+.vung-bieu-mau > .nut-giao-dien {
+  position: absolute;
+  top: 20px;
+  right: 28px;
+}
+.cot-tai-khoan {
+  width: min(100%, 430px);
+}
+.cot-tai-khoan.rong {
+  width: min(100%, 580px);
+}
+.the-tai-khoan {
+  padding: 40px 36px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.the-tai-khoan h1 {
+  font-size: 28px;
+  margin-bottom: 6px;
+}
+.the-tai-khoan .intro {
+  color: var(--muted);
+  margin-bottom: 32px;
+  font-size: 16px;
+}
+.the-tai-khoan .nut.day-du {
+  width: 100%;
+}
+.thong-bao-da-gui {
+  background: var(--green-tint);
+  color: var(--green);
+  padding: 17px;
+  border-radius: 6px;
+  margin-bottom: 18px;
+}
+.thong-bao-da-gui strong {
+  display: block;
+  margin-bottom: 6px;
+}
+.thong-bao-da-gui p {
+  color: var(--muted);
+  font-size: 13px;
+  margin: 0;
+}
+@media (max-width: 900px) {
+  .bo-cuc-tai-khoan {
+    display: block;
+  }
+  .anh-tai-khoan {
+    display: none;
+  }
+  .vung-bieu-mau {
+    min-height: 100vh;
+    padding: 70px 20px 28px;
+  }
+  .vung-bieu-mau > .nut-giao-dien {
+    right: 20px;
+  }
+}
+@media (max-width: 480px) {
+  .the-tai-khoan {
+    padding: 30px 22px;
+  }
+}

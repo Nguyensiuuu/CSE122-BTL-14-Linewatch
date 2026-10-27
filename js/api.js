@@ -1,72 +1,50 @@
-/**
- * ============================================================================
- * API FACADE TRUNG TÂM (API.JS)
- * Cổng giao tiếp chung giữa giao diện và kho lưu trữ dữ liệu (Store).
- * ============================================================================
- */
+import { getTasks as maintenanceGetTasks, startTask, resolveTask, getTaskDetail, getMachineHistory, saveAi3Decision,
+  getMaintenanceLogs, createMaintenanceLog, updateMaintenanceLog, archiveMaintenanceLog } from './maintenance.js';
+import { loginDemo, loginWithCredentials, getCurrentUser, requestPasswordReset, logout } from './auth.js';
+import { analyzeMachine } from './ai3.js';
+import { readStore, wrap } from './store.js';
+import * as thang from './modules/shared/api.js';
+import { acceptIncident as sonAccept, assignIncident as sonAssign, closeIncident as sonClose,
+  getNotifications, markNotificationsRead } from './incident-flow.js';
+import { saveShiftNote as sonSaveNote, getShiftNotes } from './shift-notes.js';
+import { saveReport as sonSaveReport, getReports } from './reports.js';
+import { summarizeShift } from './ai2.js';
 
-import { wrap, load, ok, fail } from "./store.js";
+// Các hàm nghiệp vụ giữ nguyên từ phần Thắng/Sơn, trang chỉ gọi cổng này.
+const peers = {
+  getLines: thang.getLines, getMachines: thang.getMachines,
+  getIncidents: thang.getIncidents, createIncident: thang.createIncident,
+  updateOwnIncident: thang.updateOwnIncident, cancelIncident: thang.cancelIncident,
+  acceptIncident: sonAccept, assignIncident: sonAssign, closeIncident: sonClose,
+  saveShiftNote: sonSaveNote, saveReport: sonSaveReport,
+  requestRegistration: thang.submitRegistration
+};
+export function registerModules(modules) { Object.assign(peers, modules); }
+const waiting = name => ({ ok: false, data: null, error: {
+  code: 'NOT_FOUND', message: `Thiếu chức năng ${name} trong bản ghép.` } });
+const delegate = async (name, ...args) => {
+  return typeof peers[name] === 'function' ? peers[name](...args) : waiting(name);
+};
 
-// Re-export các hàm nghiệp vụ từ các module chuyên biệt
-export {
-  acceptIncident,
-  assignIncident,
-  closeIncident,
-  getNotifications,
-  markNotificationsRead,
-} from "./incident-flow.js";
-export { saveShiftNote, getShiftNotes } from "./shift-notes.js";
-export { saveReport, getReports } from "./reports.js";
-export { summarizeShift } from "./ai2.js";
+export const getLines = () => delegate('getLines');
+export const getMachines = () => delegate('getMachines');
+export const getIncidents = filters => delegate('getIncidents', filters);
+export const createIncident = payload => delegate('createIncident', payload);
+export const updateOwnIncident = (id, patch) => delegate('updateOwnIncident', id, patch);
+export const cancelIncident = id => delegate('cancelIncident', id);
+export const acceptIncident = id => delegate('acceptIncident', id);
+export const assignIncident = (id, assigneeId) => delegate('assignIncident', id, assigneeId);
+export const closeIncident = id => delegate('closeIncident', id);
+export const saveShiftNote = payload => delegate('saveShiftNote', payload);
+export const saveReport = payload => delegate('saveReport', payload);
+export const requestRegistration = payload => delegate('requestRegistration', payload);
 
-/* ==========================================================================
- * 1. CÁC HÀM TRUY VẤN DỮ LIỆU CƠ BẢN (QUERIES)
- * ========================================================================== */
-
-export const getLines = () => wrap((d) => d.lines);
-export const getMachines = () => wrap((d) => d.machines);
-export const getUsers = () => wrap((d) => d.users);
-export const getShifts = () => wrap((d) => d.shifts);
-
-// Lấy danh sách nhiệm vụ bảo trì (Có thể lọc theo mã kỹ thuật viên assigneeId)
-export const getTasks = (a) =>
-  wrap((d) => d.maintenanceTasks.filter((t) => !a || t.assigneeId === a));
-
-// Lấy danh sách sự cố với bộ lọc linh hoạt (truyền vào object điều kiện f)
-export const getIncidents = (f = {}) =>
-  wrap((d) =>
-    d.incidents.filter((i) =>
-      Object.entries(f).every(([k, v]) => v == null || i[k] === v),
-    ),
-  );
-
-/* ==========================================================================
- * 2. QUẢN LÝ PHIÊN ĐĂNG NHẬP & XÁC THỰC DEMO (AUTH)
- * ========================================================================== */
-
-const SK = "linewatch.v1.session";
-
-// Đăng nhập demo theo vai trò (supervisor / admin / maintenance)
-export async function loginDemo(role) {
-  try {
-    const u = (await load()).users.find((x) => x.role === role && x.active);
-    if (!u) return fail("NOT_FOUND", "Không có tài khoản demo");
-
-    // Lưu ID người dùng vào localStorage
-    localStorage.setItem(SK, JSON.stringify({ userId: u.id }));
-    return ok(u);
-  } catch (e) {
-    return fail("STORAGE_ERROR", e.message);
-  }
-}
-
-// Lấy thông tin người dùng đang đăng nhập hiện tại
-export async function getCurrentUser() {
-  try {
-    const s = JSON.parse(localStorage.getItem(SK) || "null");
-    const u = s && (await load()).users.find((x) => x.id === s.userId);
-    return ok(u || null);
-  } catch (e) {
-    return fail("STORAGE_ERROR", e.message);
-  }
-}
+export const getTasks = assigneeId => assigneeId ? maintenanceGetTasks(assigneeId) : getAllTasks();
+export { startTask, resolveTask, getTaskDetail, getMachineHistory, saveAi3Decision,
+  getMaintenanceLogs, createMaintenanceLog, updateMaintenanceLog, archiveMaintenanceLog,
+  loginDemo, loginWithCredentials, getCurrentUser, requestPasswordReset, logout, analyzeMachine };
+export { getNotifications, markNotificationsRead, getShiftNotes, getReports, summarizeShift };
+export const getUsers = () => wrap(data => data.users);
+export const getShifts = () => wrap(data => data.shifts);
+// Sơn cần xem mọi nhiệm vụ trên bảng điều phối; hàng chờ kỹ thuật vẫn gọi getTasks(id).
+export const getAllTasks = () => wrap(data => data.maintenanceTasks);

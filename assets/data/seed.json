@@ -58,6 +58,12 @@
       "lineId": "L03",
       "name": "Camera kiểm tra",
       "status": "normal"
+    },
+    {
+      "id": "M-201",
+      "lineId": "L02",
+      "name": "Gia nhiệt",
+      "status": "normal"
     }
   ],
   "incidents": [
@@ -91,7 +97,9 @@
         "reason": "Rung và nhiệt tăng",
         "confidence": 0.8,
         "source": "mock-rule"
-      }
+      },
+      "notes": "",
+      "attachments": []
     },
     {
       "id": "INC-244",
@@ -204,9 +212,11 @@
       "resolvedAt": null,
       "closedAt": null,
       "cancelledAt": null,
-      "downtimeStartAt": null,
+      "downtimeStartAt": "2026-10-20T15:22:00+07:00",
       "downtimeEndAt": null,
-      "ai1": null
+      "ai1": null,
+      "notes": "Đã thử tắt/bật lại nhưng vẫn bị lệch.",
+      "attachments": []
     },
     {
       "id": "INC-235",
@@ -414,6 +424,63 @@
       "downtimeStartAt": null,
       "downtimeEndAt": null,
       "ai1": null
+    },
+    {
+      "id": "INC-242",
+      "lineId": "L02",
+      "machineId": "M-203",
+      "shiftId": "CA2-20261020",
+      "title": "Nhiệt độ máy tăng nhanh",
+      "description": "Nhiệt độ máy ép số 2 tăng nhanh bất thường và có mùi khét.",
+      "category": "mechanical",
+      "priority": "high",
+      "status": "new",
+      "reportedById": "USR-OP-01",
+      "assignedToId": null,
+      "reportedAt": "2026-10-20T15:10:00+07:00",
+      "acceptedAt": null,
+      "assignedAt": null,
+      "startedAt": null,
+      "resolvedAt": null,
+      "closedAt": null,
+      "cancelledAt": null,
+      "downtimeStartAt": "2026-10-20T15:10:00+07:00",
+      "downtimeEndAt": null,
+      "notes": "",
+      "attachments": [],
+      "ai1": {
+        "status": "rejected",
+        "suggestion": {
+          "category": "mechanical",
+          "priority": "high"
+        },
+        "reason": "Mô tả nhắc tới nhiệt độ tăng nhanh bất thường.",
+        "confidence": 0.8,
+        "source": "mock-rule"
+      }
+    },
+    {
+      "id": "INC-227",
+      "lineId": "L02",
+      "machineId": "M-202",
+      "shiftId": "CA1-20261020",
+      "title": "Rung ổ trục máy ép",
+      "description": "Ổ trục máy ép số 1 rung mạnh khi vận hành",
+      "category": "mechanical",
+      "priority": "medium",
+      "status": "closed",
+      "reportedById": "USR-OP-01",
+      "assignedToId": "USR-MT-01",
+      "reportedAt": "2026-10-20T09:10:00+07:00",
+      "acceptedAt": "2026-10-20T09:13:00+07:00",
+      "assignedAt": "2026-10-20T09:16:00+07:00",
+      "startedAt": "2026-10-20T09:20:00+07:00",
+      "resolvedAt": "2026-10-20T09:52:00+07:00",
+      "closedAt": "2026-10-20T10:00:00+07:00",
+      "cancelledAt": null,
+      "downtimeStartAt": "2026-10-20T09:10:00+07:00",
+      "downtimeEndAt": "2026-10-20T09:52:00+07:00",
+      "ai1": null
     }
   ],
   "maintenanceTasks": [
@@ -512,6 +579,18 @@
       "startedAt": "2026-10-20T14:35:00+07:00",
       "completedAt": "2026-10-20T14:40:00+07:00",
       "ai3": null
+    },
+    {
+      "id": "MT-227",
+      "incidentId": "INC-227",
+      "assigneeId": "USR-MT-01",
+      "status": "done",
+      "cause": "Ổ trục mòn",
+      "action": "Thay ổ trục và cân chỉnh",
+      "result": "Máy ép chạy ổn định",
+      "startedAt": "2026-10-20T09:20:00+07:00",
+      "completedAt": "2026-10-20T09:52:00+07:00",
+      "ai3": null
     }
   ],
   "shiftNotes": [],
@@ -531,7 +610,7 @@
     },
     {
       "id": "USR-MT-01",
-      "name": "Kỹ thuật viên mẫu",
+      "name": "Kỹ thuật viên Tú",
       "role": "maintenance",
       "active": true
     },
@@ -543,7 +622,7 @@
     },
     {
       "id": "USR-MT-02",
-      "name": "KTV Minh",
+      "name": "Kỹ thuật viên Minh",
       "role": "maintenance",
       "active": true
     }
@@ -563,5 +642,6 @@
       "endsAt": "2026-10-20T22:00:00+07:00",
       "supervisorId": "USR-SUP-01"
     }
-  ]
+  ],
+  "maintenanceLogs": []
 }

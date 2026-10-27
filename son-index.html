@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>LineWatch · Phần của Sơn</title>
+
+    <!-- Nhúng các file CSS định dạng giao diện -->
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/son.css" />
+
+    <!-- Kiểm tra nếu mở file trực tiếp (file://) thì hiện cảnh báo bắt buộc dùng Local Server -->
+    <script>
+      if (location.protocol === "file:") {
+        document.addEventListener("DOMContentLoaded", function () {
+          document.body.innerHTML = `
+                    <div style="max-width:560px;margin:60px auto;font:16px/1.6 system-ui;padding:24px;border:2px solid #b07a2b;border-radius:12px;background:#fff;color:#1d2a24">
+                        <h2>Chưa chạy qua máy chủ cục bộ</h2>
+                        <p>Trang dùng ES module và fetch seed.json nên <b>không mở bằng double-click (file://)</b> được. 
+                        Hãy mở thư mục dự án bằng <b>Live Server</b> (VS Code) hoặc chạy file <b>chay.bat</b> / <b>chay.sh</b>, 
+                        rồi vào <b>http://localhost:8000/</b>.</p>
+                    </div>
+                `;
+        });
+      }
+    </script>
+  </head>
+
+  <body>
+    <!-- Khu vực nội dung chính, căn giữa màn hình -->
+    <main class="main" style="margin: auto">
+      <!-- Tiêu đề trang và hướng dẫn chung -->
+      <h1>LineWatch · Phần của Sơn</h1>
+      <p class="sub">
+        Trưởng ca và Quản trị viên. Bấm vào từng khung (dữ liệu dùng chung, lưu
+        trong localStorage).
+      </p>
+
+      <!-- Khung chứa các liên kết điều hướng chức năng -->
+      <div class="card">
+        <!-- Nhóm chức năng dành cho Trưởng ca -->
+        <h3>Trưởng ca</h3>
+        <p>
+          <a href="pages/supervisor-shift-dashboard.html">05 · Tổng quan ca</a
+          ><br />
+          <a href="pages/supervisor-incident-board.html">06 · Bảng điều phối</a
+          ><br />
+          <a href="pages/supervisor-handover-note.html">07 · Bản giao ca</a>
+        </p>
+
+        <!-- Nhóm chức năng dành cho Quản trị viên (Admin) -->
+        <h3>Quản trị viên</h3>
+        <p>
+          <a href="pages/admin-machine-management.html"
+            >11 · Danh mục máy (chỉ đọc)</a
+          ><br />
+          <a href="pages/admin-downtime-report.html">13 · Báo cáo dừng máy</a>
+        </p>
+
+        <!-- Nhóm chức năng Khác và Tiện ích hệ thống -->
+        <h3>Khác</h3>
+        <p>
+          <a href="pages/notifications.html">21 · Thông báo</a><br />
+          <a href="pages/403.html">18 · Lỗi 403</a><br />
+          <!-- Nút bấm xóa toàn bộ dữ liệu demo lưu trong trình duyệt và tải lại trang -->
+          <button
+            class="btn"
+            onclick="
+              localStorage.clear();
+              location.reload();
+            "
+          >
+            Reset dữ liệu demo
+          </button>
+        </p>
+      </div>
+
+      <!-- Đăng nhập demo theo vai trò để các trang Sơn không tự login -->
+      <div class="card">
+        <h3>Đăng nhập demo</h3>
+        <p class="sub">Chọn vai trò để tạo phiên trước khi vào các trang.</p>
+        <p>
+          <button class="btn" data-login="supervisor">Trưởng ca</button>
+          <button class="btn" data-login="admin">Quản trị viên</button>
+          <button class="btn" data-login="maintenance">Kỹ thuật viên</button>
+        </p>
+        <p id="login-msg" class="sub" role="status"></p>
+      </div>
+
+      <!-- Ghi chú về các phần việc của thành viên khác trong nhóm -->
+      <p class="sub">
+        Chưa có trong gói này (phần của Thắng/Nguyên): trang tạo sự cố, hàng đợi
+        bảo trì, lịch sử máy.
+      </p>
+    </main>
+
+    <script type="module">
+      import { loginDemo } from "./js/api.js";
+      document.querySelectorAll("[data-login]").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          const r = await loginDemo(btn.dataset.login);
+          document.getElementById("login-msg").textContent = r.ok
+            ? `Đã đăng nhập: ${r.data.name}`
+            : r.error.message;
+        });
+      });
+    </script>
+  </body>
+</html>

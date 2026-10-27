@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lịch sử máy | LineWatch</title>
+  <script src="../../js/theme.js"></script>
+  <link rel="stylesheet" href="../../css/style.css">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="../../css/unified.css">
+</head>
+<body class="trang-lich-su">
+  <div class="khung-ung-dung">
+    <aside class="thanh-ben" id="sidebar"></aside>
+    <div class="khu-lam-viec">
+      <header class="thanh-tren" id="topbar"></header>
+      <main class="noi-dung-trang">
+        <div class="dau-trang"><h1 id="machine-title">Đang tải lịch sử máy…</h1><p>Lịch sử sự cố, bảo trì và mẫu lỗi lặp lại</p></div>
+        <div class="luoi-chi-tiet luoi-lich-su">
+          <section class="the the-lich-su">
+            <h2>Lịch sử 90 ngày</h2>
+            <div id="history-content" class="dang-tai">Đang tải lịch sử…</div>
+            <div class="muc-tan-suat"><h3>Tần suất lỗi theo nhóm</h3><div id="frequency"></div></div>
+            <section class="nhat-ky-bao-tri" aria-labelledby="journal-title">
+              <div class="dau-nhat-ky"><h3 id="journal-title">NHẬT KÝ BẢO TRÌ · <span id="journal-machine"></span>
+                      </h3><button type="button" class="nut-nhat-ky" id="journal-add">+ Ghi nhận công việc</button></div>
+              <div id="journal-content" class="chu-phu">Đang tải nhật ký…</div>
+              <p class="ghi-chu-nhat-ky">Giữ dấu vết chỉnh sửa; không xóa lịch sử máy đã nghiệm thu.</p>
+              <form id="journal-form" class="bieu-mau-nhat-ky" hidden>
+                <p id="journal-context" class="chu-phu"></p>
+                <input type="hidden" id="journal-id">
+                <div class="truong-nhap"><label for="journal-action-text">Công việc đã làm</label>
+                      <input id="journal-action-text" maxlength="180" required placeholder="Ví dụ: Kiểm tra ổ trục"></div>
+                <div class="truong-nhap"><label for="journal-time">Thời gian thực hiện</label><input id="journal-time" type="datetime-local" required></div>
+                <div class="nhom-nut"><button class="nut" type="submit">Lưu ghi nhận</button><button class="nut phu" type="button" id="journal-cancel">Hủy</button></div>
+                <p class="loi-bieu-mau" id="journal-error" role="alert" hidden></p>
+              </form>
+            </section>
+          </section>
+          <aside class="the the-goi-y goi-y-lich-su">
+            <h2>AI-3 · Phát hiện lỗi lặp lại</h2>
+            <div class="truong-nhap"><label for="ai-task-select">Công việc để lưu gợi ý</label>
+              <select id="ai-task-select"><option value="">Chỉ xem lịch sử máy</option></select></div>
+            <div id="ai-content" class="dang-tai">Đang phân tích dữ liệu…</div>
+            <div class="thao-tac-goi-y" id="ai-actions" hidden>
+              <button type="button" class="nut" data-decision="accepted">Chấp nhận</button>
+              <button type="button" class="nut phu" data-decision="edited">Sửa</button>
+              <button type="button" class="nut phu" data-decision="rejected">Từ chối</button>
+              <button type="button" class="nut phu" id="regenerate">Tạo lại</button>
+            </div>
+            <form id="ai-edit-form" class="truong-nhap ghi-chu-noi-dung" hidden>
+                <label for="ai-edit-text">Chỉnh khuyến nghị trước khi lưu</label><textarea id="ai-edit-text" required></textarea>
+              <button class="nut" type="submit">Lưu bản đã sửa</button></form>
+            <p id="ai-message" class="chu-nho chu-phu ghi-chu-noi-dung"></p>
+          </aside>
+        </div>
+      </main>
+    </div>
+  </div>
+  <div class="vung-thong-bao-noi" id="toasts" aria-live="polite"></div>
+  <script type="module" src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,243 @@
+/* Trang 09-chi-tiet - CSS riêng. Màu/nút/form cơ bản ở ../../css/style.css. */
+.khung-ung-dung {
+  display: grid;
+  grid-template-columns: 224px minmax(0, 1fr);
+  min-height: 100vh;
+}
+.thanh-ben {
+  background: var(--sidebar);
+  color: #f5fbf5;
+  padding: 25px 14px;
+  display: flex;
+  flex-direction: column;
+}
+.thuong-hieu {
+  padding: 0 10px 26px;
+}
+.thuong-hieu strong {
+  font-size: 20px;
+  letter-spacing: -.04em;
+}
+.thuong-hieu small {
+  display: block;
+  color: #b8c9bc;
+  margin: 3px 0 16px;
+  font-size: 12px;
+}
+.nhan-vai-tro {
+  display: inline-flex;
+  padding: 6px 12px;
+  background: #eef6ee;
+  border-radius: 999px;
+  color: #285f45;
+  font-size: 12px;
+  font-weight: 600;
+}
+.danh-sach-dieu-huong {
+  display: grid;
+  gap: 5px;
+}
+.muc-dieu-huong {
+  display: block;
+  padding: 13px 18px;
+  border-left: 4px solid transparent;
+  color: #d7e5d8;
+  font-size: 14px;
+}
+.muc-dieu-huong:hover, .muc-dieu-huong.active {
+  background: var(--sidebar-active);
+  border-left-color: #70bb91;
+  color: #fff;
+  text-decoration: none;
+}
+.thong-tin-ca {
+  margin-top: auto;
+  padding: 20px 10px 0;
+  color: #c9d8cd;
+  font-size: 13px;
+  line-height: 1.8;
+}
+.thong-tin-ca span {
+  display: block;
+}
+.thong-tin-ca strong {
+  display: block;
+  color: #fff;
+}
+.khu-lam-viec {
+  min-width: 0;
+  background: var(--page);
+}
+.thanh-tren {
+  min-height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 32px;
+}
+.thanh-tren h1 {
+  font-size: 20px;
+  margin: 0;
+}
+.thao-tac-tren {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.thao-tac-tren .ngay-hom-nay {
+  color: var(--muted);
+  font-size: 13px;
+  white-space: nowrap;
+}
+.ho-so {
+  padding: 8px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.ho-so strong {
+  color: var(--green);
+  margin-right: 5px;
+}
+.noi-dung-trang {
+  max-width: 1216px;
+  margin: 0;
+  padding: 24px 32px;
+}
+.dau-trang {
+  margin-bottom: 16px;
+}
+.dau-trang h2 {
+  margin-bottom: 6px;
+  font-family: Inter, Arial, sans-serif;
+  font-size: 20px;
+}
+.dau-trang p {
+  color: var(--muted);
+  font-size: 13px;
+  margin: 0;
+}
+.luoi-chi-tiet {
+  display: grid;
+  grid-template-columns: minmax(0, 720px) minmax(280px, 400px);
+  gap: 26px;
+}
+.luoi-chi-tiet > * {
+  min-width: 0;
+}
+.luoi-thong-tin {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 20px;
+  font-size: 14px;
+  margin-bottom: 23px;
+}
+.luoi-thong-tin dt {
+  color: var(--muted);
+}
+.luoi-thong-tin dd {
+  margin: 0;
+}
+.duong-phan-cach {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin: 25px 0;
+}
+.dong-thoi-gian {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.dong-thoi-gian li {
+  display: grid;
+  grid-template-columns: 10px minmax(125px, 145px) 1fr;
+  gap: 12px;
+  padding: 0 0 28px;
+  position: relative;
+  font-size: 14px;
+}
+.dong-thoi-gian li::before {
+  content: '';
+  width: 9px;
+  height: 9px;
+  background: var(--green);
+  border-radius: 50%;
+  margin-top: 4px;
+}
+.dong-thoi-gian li:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 16px;
+  bottom: 4px;
+  width: 1px;
+  background: var(--border);
+}
+.dong-thoi-gian time {
+  color: var(--muted);
+}
+.the-goi-y {
+  background: var(--surface-soft);
+  border-color: var(--border);
+}
+.the-goi-y h3 {
+  color: var(--green);
+}
+.thao-tac-goi-y {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 25px;
+}
+.thao-tac-goi-y .nut {
+  min-height: 35px;
+  font-size: 12px;
+}
+.ghi-chu-noi-dung {
+  margin-top: 22px;
+}
+@media (max-width: 800px) {
+  .khung-ung-dung {
+    display: block;
+  }
+  .thanh-ben {
+    padding: 13px 16px;
+  }
+  .thuong-hieu {
+    padding: 0 0 8px;
+  }
+  .thuong-hieu small, .thong-tin-ca {
+    display: none;
+  }
+  .danh-sach-dieu-huong {
+    display: flex;
+    overflow-x: auto;
+  }
+  .muc-dieu-huong {
+    white-space: nowrap;
+    padding: 10px 12px;
+  }
+  .thanh-tren {
+    padding: 14px 20px;
+  }
+  .noi-dung-trang {
+    padding: 24px 20px;
+  }
+  .luoi-chi-tiet {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 600px) {
+  .thanh-tren {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .thao-tac-tren {
+    flex-wrap: wrap;
+  }
+}
