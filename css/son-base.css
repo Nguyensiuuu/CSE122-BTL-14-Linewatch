@@ -1,0 +1,843 @@
+/* ==========================================================================
+   1. CẤU HÌNH BIẾN TOÀN CỤC & CHẾ ĐỘ MÀU (THEME)
+   ========================================================================== */
+:root {
+  --bg: #f5f2ea;
+  --surface: #fff;
+  --side: #1b2b23;
+  --ink: #1d2a24;
+  --muted: #6b7a72;
+  --line: #e4e1d8;
+  --green: #2f6b4f;
+  --on-green: #fff;
+  --green-soft: #e6efe9;
+  --red: #b5544b;
+  --red-soft: #f6e3e0;
+  --amber: #b07a2b;
+  --amber-soft: #f7ecd2;
+  --slate: #547085;
+  --slate-soft: #e1ebf0;
+  --grey-soft: #eaeeea;
+  --serif: "Lora", Georgia, serif;
+  --sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+[data-theme="dark"] {
+  --bg: #121a16;
+  --surface: #1b2520;
+  --side: #0c120f;
+  --ink: #e8efe9;
+  --muted: #9aa9a0;
+  --line: #2b3830;
+  --green: #5fae8a;
+  --on-green: #0c120f;
+  --green-soft: #22382d;
+  --red: #e08a80;
+  --red-soft: #3a2523;
+  --amber: #d9a553;
+  --amber-soft: #3a3120;
+  --slate: #8fb0c6;
+  --slate-soft: #22313a;
+  --grey-soft: #26312b;
+}
+
+/* ==========================================================================
+   2. THIẾT LẬP CƠ BẢN (BASE & RESET)
+   ========================================================================== */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 13px/1.45 var(--sans);
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--serif);
+  margin: 0;
+}
+
+a {
+  color: var(--green);
+}
+
+/* Accessibility: Skip link */
+.skip {
+  position: absolute;
+  left: -999px;
+}
+.skip:focus {
+  left: 8px;
+  top: 8px;
+  z-index: 9;
+  background: var(--surface);
+  padding: 6px;
+}
+
+/* ==========================================================================
+   3. BỐ CỤC CHÍNH (LAYOUT & SHELL)
+   ========================================================================== */
+.shell {
+  display: grid;
+  grid-template-columns: 176px 1fr;
+  min-height: 100vh;
+}
+
+/* Sidebar */
+.side {
+  background: var(--side);
+  color: #e8efe9;
+  padding: 22px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.brand {
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 0.02em;
+}
+
+.tag {
+  font-size: 11px;
+  opacity: 0.7;
+}
+
+.role {
+  align-self: flex-start;
+  margin: 8px 0 12px;
+  background: #e6efe9;
+  color: #2f6b4f;
+  border-radius: 99px;
+  padding: 2px 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.side nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.side nav a {
+  color: #e8efe9;
+  text-decoration: none;
+  padding: 9px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  border-left: 3px solid transparent;
+}
+
+.side nav a:hover {
+  background: #ffffff14;
+}
+
+.side nav a.on {
+  background: #2f4a3c;
+  border-left-color: #5fae8a;
+}
+
+.cur {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  font-size: 12px;
+}
+.cur small {
+  opacity: 0.65;
+}
+.cur strong {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Main Column & Header */
+.col {
+  min-width: 0;
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  padding: 16px 24px;
+}
+
+.top h2 {
+  font-size: 17px;
+  margin-right: auto;
+}
+
+.date {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.bell {
+  border: 0;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  background: var(--red-soft);
+  color: var(--red);
+  border-radius: 99px;
+  min-width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  text-decoration: none;
+}
+
+.user {
+  border: 1px solid var(--line);
+  border-radius: 99px;
+  padding: 4px 14px 4px 10px;
+  font-size: 13px;
+}
+.user b {
+  color: var(--green);
+  margin-right: 4px;
+}
+
+/* Main Content Area */
+.main {
+  padding: 22px 24px 40px;
+}
+.main h1 {
+  font-size: 18px;
+  font-family: var(--sans);
+  font-weight: 700;
+}
+.sub {
+  color: var(--muted);
+  margin: 2px 0 16px;
+  font-size: 12px;
+}
+
+/* ==========================================================================
+   4. THÀNH PHẦN GIAO DIỆN (COMPONENTS)
+   ========================================================================== */
+/* Card */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 18px;
+}
+
+/* Buttons */
+.btn {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 8px 14px;
+  border-radius: 7px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+}
+.btn:hover {
+  border-color: var(--green);
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.btn.pri {
+  background: var(--green);
+  border-color: var(--green);
+  color: var(--on-green);
+}
+.btn.link {
+  border: 0;
+  background: none;
+  color: var(--green);
+  padding: 4px 6px;
+}
+.btn.danger {
+  border: 0;
+  background: none;
+  color: var(--red);
+}
+
+/* Form Controls */
+input,
+select,
+textarea {
+  font: inherit;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--surface);
+  color: var(--ink);
+  max-width: 100%;
+}
+:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
+}
+
+/* Pills & Badges */
+.pill {
+  display: inline-block;
+  border-radius: 99px;
+  padding: 2px 12px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.p-high,
+.s-new {
+  background: var(--red-soft);
+  color: var(--red);
+}
+.p-med,
+.s-acc {
+  background: var(--amber-soft);
+  color: var(--amber);
+}
+.p-low {
+  background: var(--grey-soft);
+  color: var(--muted);
+}
+.s-asg,
+.s-prog {
+  background: var(--slate-soft);
+  color: var(--slate);
+}
+.s-res,
+.s-done {
+  background: var(--green-soft);
+  color: var(--green);
+}
+
+/* Skeleton Loading */
+.skel i {
+  display: block;
+  height: 48px;
+  margin: 10px 0;
+  border-radius: 8px;
+  background: linear-gradient(90deg, var(--line), var(--surface), var(--line));
+  background-size: 200% 100%;
+  animation: sh 1.2s infinite;
+}
+@keyframes sh {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* State & Toasts */
+.state {
+  padding: 28px;
+  text-align: center;
+  color: var(--muted);
+}
+.state.err {
+  color: var(--red);
+}
+
+.toast {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  background: var(--green);
+  color: var(--on-green);
+  padding: 10px 16px;
+  border-radius: 8px;
+  z-index: 20;
+  max-width: 360px;
+}
+.toast.err {
+  background: var(--red);
+  color: #fff;
+}
+
+/* Dialog Modal */
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--ink);
+  padding: 20px;
+  max-width: 480px;
+  width: 92%;
+}
+dialog::backdrop {
+  background: #0008;
+}
+
+/* Tables */
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+th {
+  text-align: left;
+  font-weight: 500;
+  color: var(--muted);
+  font-size: 12px;
+  padding: 8px 10px;
+}
+td {
+  padding: 12px 10px;
+  border-top: 1px solid var(--line);
+}
+.scroll {
+  overflow-x: auto;
+}
+
+/* ==========================================================================
+   5. RESPONSIVE & ACCESSIBILITY
+   ========================================================================== */
+@media (max-width: 900px) {
+  .shell {
+    grid-template-columns: 1fr;
+  }
+  .side {
+    position: static;
+    height: auto;
+    padding: 12px 16px;
+  }
+  .side nav {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  .cur {
+    display: none;
+  }
+  .main,
+  .top {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+  }
+}
+
+
+/* Son layout styles */
+/* Token sáng/tối được khai báo một lần trong style.css. */
+
+/* ==========================================================================
+   2. THIẾT LẬP CƠ BẢN (BASE & RESET)
+   ========================================================================== */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 13px/1.45 var(--sans);
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--serif);
+  margin: 0;
+}
+
+a {
+  color: var(--green);
+}
+
+/* Accessibility: Skip link */
+.skip {
+  position: absolute;
+  left: -999px;
+}
+.skip:focus {
+  left: 8px;
+  top: 8px;
+  z-index: 9;
+  background: var(--surface);
+  padding: 6px;
+}
+
+/* ==========================================================================
+   3. BỐ CỤC CHÍNH (LAYOUT & SHELL)
+   ========================================================================== */
+.shell {
+  display: grid;
+  grid-template-columns: 176px 1fr;
+  min-height: 100vh;
+}
+
+/* Sidebar */
+.side {
+  background: var(--side);
+  color: #e8efe9;
+  padding: 22px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.brand {
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 0.02em;
+}
+
+.tag {
+  font-size: 11px;
+  opacity: 0.7;
+}
+
+.role {
+  align-self: flex-start;
+  margin: 8px 0 12px;
+  background: #e6efe9;
+  color: #2f6b4f;
+  border-radius: 99px;
+  padding: 2px 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.side nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.side nav a {
+  color: #e8efe9;
+  text-decoration: none;
+  padding: 9px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  border-left: 3px solid transparent;
+}
+
+.side nav a:hover {
+  background: #ffffff14;
+}
+
+.side nav a.on {
+  background: #2f4a3c;
+  border-left-color: #5fae8a;
+}
+
+.cur {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  font-size: 12px;
+}
+.cur small {
+  opacity: 0.65;
+}
+.cur strong {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Main Column & Header */
+.col {
+  min-width: 0;
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  padding: 16px 24px;
+}
+
+.top .tieu-de-tren {
+  font-size: 17px;
+  margin-right: auto;
+}
+
+.date {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.bell {
+  border: 0;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  background: var(--red-soft);
+  color: var(--red);
+  border-radius: 99px;
+  min-width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  text-decoration: none;
+}
+
+.user {
+  border: 1px solid var(--line);
+  border-radius: 99px;
+  padding: 4px 14px 4px 10px;
+  font-size: 13px;
+}
+.user b {
+  color: var(--green);
+  margin-right: 4px;
+}
+
+/* Main Content Area */
+.main {
+  padding: 22px 24px 40px;
+}
+.main h1 {
+  font-size: 18px;
+  font-family: var(--sans);
+  font-weight: 700;
+}
+.sub {
+  color: var(--muted);
+  margin: 2px 0 16px;
+  font-size: 12px;
+}
+
+/* ==========================================================================
+   4. THÀNH PHẦN GIAO DIỆN (COMPONENTS)
+   ========================================================================== */
+/* Card */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 18px;
+}
+
+/* Buttons */
+.btn {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 8px 14px;
+  border-radius: 7px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+}
+.btn:hover {
+  border-color: var(--green);
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.btn.pri {
+  background: var(--green);
+  border-color: var(--green);
+  color: var(--on-green);
+}
+.btn.link {
+  border: 0;
+  background: none;
+  color: var(--green);
+  padding: 4px 6px;
+}
+.btn.danger {
+  border: 0;
+  background: none;
+  color: var(--red);
+}
+
+/* Form Controls */
+input,
+select,
+textarea {
+  font: inherit;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--surface);
+  color: var(--ink);
+  max-width: 100%;
+}
+:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
+}
+
+/* Pills & Badges */
+.pill {
+  display: inline-block;
+  border-radius: 99px;
+  padding: 2px 12px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.p-high,
+.s-new {
+  background: var(--red-soft);
+  color: var(--red);
+}
+.p-med,
+.s-acc {
+  background: var(--amber-soft);
+  color: var(--amber);
+}
+.p-low {
+  background: var(--grey-soft);
+  color: var(--muted);
+}
+.s-asg,
+.s-prog {
+  background: var(--slate-soft);
+  color: var(--slate);
+}
+.s-res,
+.s-done {
+  background: var(--green-soft);
+  color: var(--green);
+}
+
+/* Skeleton Loading */
+.skel i {
+  display: block;
+  height: 48px;
+  margin: 10px 0;
+  border-radius: 8px;
+  background: linear-gradient(90deg, var(--line), var(--surface), var(--line));
+  background-size: 200% 100%;
+  animation: sh 1.2s infinite;
+}
+@keyframes sh {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* State & Toasts */
+.state {
+  padding: 28px;
+  text-align: center;
+  color: var(--muted);
+}
+.state.err {
+  color: var(--red);
+}
+
+.toast {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  background: var(--green);
+  color: var(--on-green);
+  padding: 10px 16px;
+  border-radius: 8px;
+  z-index: 20;
+  max-width: 360px;
+}
+.toast.err {
+  background: var(--red);
+  color: #fff;
+}
+
+/* Dialog Modal */
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--ink);
+  padding: 20px;
+  max-width: 480px;
+  width: 92%;
+}
+dialog::backdrop {
+  background: #0008;
+}
+dialog form {
+  display: grid;
+  gap: 12px;
+}
+dialog .modal-desc {
+  margin: 0;
+  color: var(--muted);
+}
+dialog .modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* Tables */
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+th {
+  text-align: left;
+  font-weight: 500;
+  color: var(--muted);
+  font-size: 12px;
+  padding: 8px 10px;
+}
+td {
+  padding: 12px 10px;
+  border-top: 1px solid var(--line);
+}
+.scroll {
+  overflow-x: auto;
+}
+
+/* ==========================================================================
+   5. RESPONSIVE & ACCESSIBILITY
+   ========================================================================== */
+@media (max-width: 900px) {
+  .shell {
+    grid-template-columns: 1fr;
+  }
+  .side {
+    position: static;
+    height: auto;
+    padding: 12px 16px;
+  }
+  .side nav {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  .cur {
+    display: none;
+  }
+  .main,
+  .top {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+  }
+}
