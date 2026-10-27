@@ -1,4 +1,4 @@
-import { getCurrentUser, logout } from './auth.js';
+import { getCurrentUser } from './auth.js';
 import { readStore } from './store.js';
 
 export const thoatHtml = value => String(value ?? '').replace(/[&<>"']/g, char => ({
@@ -38,7 +38,7 @@ export async function yeuCauTaiKhoanBaoTri(active = 'queue') {
   }
   const user = result.data;
   const data = await readStore();
-  const shift = data.shifts?.[0];
+  const shift = [...(data.shifts || [])].sort((a, b) => String(b.startsAt).localeCompare(String(a.startsAt)))[0];
   const hour = value => value ? new Intl.DateTimeFormat('vi-VN', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date(value)) : '—';
   const links = [
     ['queue', 'Hàng chờ bảo trì', '../08-hang-cho/maintenance-queue.html'],
@@ -52,14 +52,8 @@ export async function yeuCauTaiKhoanBaoTri(active = 'queue') {
     <div class="thong-tin-ca"><span>Ca mẫu</span><strong>${thoatHtml(shift?.name || 'Ca 2')} · ${hour(shift?.startsAt)}–${hour(shift?.endsAt)}</strong><span>Tổ A · Xưởng 01</span></div>`;
   const pageTitle = ({ queue: 'Hàng chờ bảo trì', detail: 'Chi tiết sự cố', history: 'Lịch sử máy' })[active];
   document.getElementById('topbar').innerHTML = `
-    <h1>${pageTitle}</h1>
+    <div class="tieu-de-tren">${pageTitle}</div>
     <div class="thao-tac-tren"><span class="ngay-hom-nay">${new Intl.DateTimeFormat('vi-VN', { dateStyle: 'medium', timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date())}</span>
-    <button type="button" class="nut-giao-dien" data-theme-toggle></button>
-    <span class="ho-so"><strong>●</strong>${thoatHtml(user.name)}</span>
-    <button type="button" id="logout" class="nut khong-nen nut-nho">Đăng xuất</button></div>`;
-  // theme.js runs before the dynamic header exists.
-  document.querySelector('#topbar [data-theme-toggle]').textContent = document.documentElement.dataset.theme === 'dark' ? '☀ Chế độ sáng' : '◐ Chế độ tối';
-  document.querySelector('#topbar [data-theme-toggle]').setAttribute('aria-pressed', String(document.documentElement.dataset.theme === 'dark'));
-  document.getElementById('logout').addEventListener('click', () => { logout(); location.href = '../01-dang-nhap/login.html'; });
+    </div>`;
   return user;
 }

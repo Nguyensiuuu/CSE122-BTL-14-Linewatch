@@ -110,7 +110,11 @@ export async function saveAi3Decision(taskId, decision, suggestion, editedSugges
     return failure('VALIDATION_ERROR', 'Quyết định AI-3 không hợp lệ.');
   try {
     return success(await updateStore(data => {
-      const { task } = timViecDuocGiao(data, taskId);
+      const { task, incident } = timViecDuocGiao(data, taskId);
+      const incidentIds = suggestion?.incidentIds;
+      if (!Array.isArray(incidentIds) || incidentIds.length < 2 ||
+          !incidentIds.every(id => data.incidents.some(item => item.id === id && item.machineId === incident.machineId)))
+        throw issue('VALIDATION_ERROR', 'Gợi ý không thuộc máy của công việc này. Hãy phân tích lại đúng máy.');
       task.ai3 = {
         status: decision,
         suggestion: decision === 'edited' ? editedSuggestion : suggestion,
@@ -139,7 +143,7 @@ export async function getMaintenanceLogs(machineId) {
   } catch (error) { return loiKetQua(error); }
 }
 
-export async function createMaintenanceLog({ machineId, action, performedAt }) {
+export async function createMaintenanceLog({ machineId, taskId = null, action, performedAt }) {
   action = String(action || '').trim();
   if (!action || !performedAt || !Number.isFinite(Date.parse(performedAt)))
     return failure('VALIDATION_ERROR', 'Nhập công việc và thời gian hợp lệ.');
@@ -147,10 +151,17 @@ export async function createMaintenanceLog({ machineId, action, performedAt }) {
     return success(await updateStore(data => {
       const user = kiemTraKyThuatVien(data);
       if (!data.machines.some(machine => machine.id === machineId)) throw issue('NOT_FOUND', 'Không tìm thấy máy.');
+      let incidentId = null;
+      if (taskId) {
+        const linked = timViecDuocGiao(data, taskId);
+        if (linked.incident.machineId !== machineId)
+          throw issue('VALIDATION_ERROR', 'Công việc và nhật ký phải thuộc cùng máy.');
+        incidentId = linked.incident.id;
+      }
       data.maintenanceLogs ||= [];
       const id = `LOG-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
       if (data.maintenanceLogs.some(log => log.id === id)) throw issue('DUPLICATE_ID', 'Mã nhật ký đã tồn tại.');
-      const log = { id, machineId, incidentId: null, taskId: null, authorId: user.id,
+      const log = { id, machineId, incidentId, taskId, authorId: user.id,
         action, performedAt: new Date(performedAt).toISOString(), archivedAt: null, revisions: [] };
       data.maintenanceLogs.push(log);
       return log;

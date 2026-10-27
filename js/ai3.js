@@ -9,7 +9,10 @@ export async function analyzeMachine({ machineId }) {
     const data = await readStore();
     if (!data.machines.some(machine => machine.id === machineId))
       return failure('NOT_FOUND', 'Máy không có trong dữ liệu chung.');
+    // Khớp với danh sách và biểu đồ "Lịch sử 90 ngày" trên cùng trang.
+    const cutoff = Date.now() - 90 * 24 * 60 * 60 * 1000;
     const completed = data.incidents.filter(item => item.machineId === machineId &&
+      new Date(item.reportedAt).getTime() >= cutoff &&
       ['resolved', 'closed'].includes(item.status) &&
       data.maintenanceTasks.some(task => task.incidentId === item.id && task.status === 'done'));
     const groups = new Map();

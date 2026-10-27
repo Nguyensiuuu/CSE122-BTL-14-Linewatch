@@ -1,5 +1,4 @@
 import { loginDemo, loginWithCredentials } from '../../js/api.js';
-import { thongBaoNoi } from '../../js/ui.js';
 
 const form = document.getElementById('login-form');
 const error = document.getElementById('login-error');
@@ -19,12 +18,8 @@ async function enter(result) {
   }
   error.hidden = true;
   const target = routes[result.data.role];
-  if (result.data.role === 'maintenance') { location.href = target; return; }
-  try {
-    const response = await fetch(target, { method: 'HEAD' });
-    if (response.ok) { location.href = target; return; }
-  } catch {}
-  thongBaoNoi(`Đã đăng nhập vai trò ${result.data.name}. Màn hình của Thắng/Sơn sẽ xuất hiện khi ghép phần việc.`, 'success');
+  if (target) location.href = target;
+  else { error.textContent = 'Vai trò này chưa có trang làm việc.'; error.hidden = false; }
 }
 
 form.addEventListener('submit', async event => {
@@ -41,11 +36,4 @@ form.addEventListener('submit', async event => {
 document.querySelectorAll('[data-demo-role]').forEach(button => button.addEventListener('click', async () => {
   await enter(await loginDemo(button.dataset.demoRole, document.getElementById('remember').checked));
 }));
-document.getElementById('register-link').addEventListener('click', async event => {
-  event.preventDefault();
-  try {
-    if ((await fetch('../register.html', { method: 'HEAD' })).ok) { location.href = '../register.html'; return; }
-  } catch {}
-  thongBaoNoi('Form đăng ký thuộc phần của Thắng; ghép register.html để mở luồng này.');
-});
 form.addEventListener('input', () => { error.hidden = true; document.getElementById('password').removeAttribute('aria-invalid'); });

@@ -203,7 +203,7 @@
 }
 .dong-su-co {
   display: grid;
-  grid-template-columns: 10px 68px minmax(120px, 180px) minmax(130px, 1fr) 86px;
+  grid-template-columns: 10px 96px minmax(120px, 180px) minmax(130px, 1fr) 86px;
   gap: 18px;
   align-items: center;
   min-height: 58px;
@@ -376,7 +376,7 @@
     grid-template-columns: minmax(0, 1fr) minmax(280px, 35%);
   }
   .dong-su-co {
-    grid-template-columns: 10px 52px minmax(100px, 1fr) minmax(100px, 1fr);
+    grid-template-columns: 10px 96px minmax(100px, 1fr) minmax(100px, 1fr);
     gap: 9px;
   }
   .thoi-gian-dung {
@@ -437,7 +437,7 @@
     flex-wrap: wrap;
   }
   .dong-su-co {
-    grid-template-columns: 10px 54px 1fr;
+    grid-template-columns: 10px 96px minmax(0, 1fr);
   }
   .bien-phap {
     grid-column: 3;

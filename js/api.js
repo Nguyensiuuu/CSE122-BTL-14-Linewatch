@@ -1,29 +1,28 @@
-import { getTasks, startTask, resolveTask, getTaskDetail, getMachineHistory, saveAi3Decision,
+import { getTasks as maintenanceGetTasks, startTask, resolveTask, getTaskDetail, getMachineHistory, saveAi3Decision,
   getMaintenanceLogs, createMaintenanceLog, updateMaintenanceLog, archiveMaintenanceLog } from './maintenance.js';
 import { loginDemo, loginWithCredentials, getCurrentUser, requestPasswordReset, logout } from './auth.js';
 import { analyzeMachine } from './ai3.js';
+import { readStore, wrap } from './store.js';
+import * as thang from './modules/shared/api.js';
+import { acceptIncident as sonAccept, assignIncident as sonAssign, closeIncident as sonClose,
+  getNotifications, markNotificationsRead } from './incident-flow.js';
+import { saveShiftNote as sonSaveNote, getShiftNotes } from './shift-notes.js';
+import { saveReport as sonSaveReport, getReports } from './reports.js';
+import { summarizeShift } from './ai2.js';
 
-// Thắng/Sơn supply their own modules. Configure once in the integration entry;
-// this facade keeps page imports stable without copying their business logic.
-const peers = {};
+// Các hàm nghiệp vụ giữ nguyên từ phần Thắng/Sơn, trang chỉ gọi cổng này.
+const peers = {
+  getLines: thang.getLines, getMachines: thang.getMachines,
+  getIncidents: thang.getIncidents, createIncident: thang.createIncident,
+  updateOwnIncident: thang.updateOwnIncident, cancelIncident: thang.cancelIncident,
+  acceptIncident: sonAccept, assignIncident: sonAssign, closeIncident: sonClose,
+  saveShiftNote: sonSaveNote, saveReport: sonSaveReport,
+  requestRegistration: thang.submitRegistration
+};
 export function registerModules(modules) { Object.assign(peers, modules); }
-const peerFiles = ['lines.js', 'incident-create.js', 'incident-flow.js', 'shift-notes.js', 'reports.js'];
-let peerLoading;
-async function loadPeers() {
-  if (!peerLoading) peerLoading = Promise.all(peerFiles.map(async file => {
-    try { registerModules(await import(`./${file}`)); }
-    catch (error) {
-      // Peers can hand over their modules later; an absent file is an integration gap.
-      if (!String(error.message).includes('Failed to fetch') && !String(error.message).includes('404'))
-        console.warn(`Không tải được ${file}:`, error);
-    }
-  }));
-  await peerLoading;
-}
 const waiting = name => ({ ok: false, data: null, error: {
-  code: 'NOT_FOUND', message: `Chưa ghép mô-đun ${name} từ phần việc của Thắng/Sơn.` } });
+  code: 'NOT_FOUND', message: `Thiếu chức năng ${name} trong bản ghép.` } });
 const delegate = async (name, ...args) => {
-  if (typeof peers[name] !== 'function') await loadPeers();
   return typeof peers[name] === 'function' ? peers[name](...args) : waiting(name);
 };
 
@@ -40,6 +39,12 @@ export const saveShiftNote = payload => delegate('saveShiftNote', payload);
 export const saveReport = payload => delegate('saveReport', payload);
 export const requestRegistration = payload => delegate('requestRegistration', payload);
 
-export { getTasks, startTask, resolveTask, getTaskDetail, getMachineHistory, saveAi3Decision,
+export const getTasks = assigneeId => assigneeId ? maintenanceGetTasks(assigneeId) : getAllTasks();
+export { startTask, resolveTask, getTaskDetail, getMachineHistory, saveAi3Decision,
   getMaintenanceLogs, createMaintenanceLog, updateMaintenanceLog, archiveMaintenanceLog,
   loginDemo, loginWithCredentials, getCurrentUser, requestPasswordReset, logout, analyzeMachine };
+export { getNotifications, markNotificationsRead, getShiftNotes, getReports, summarizeShift };
+export const getUsers = () => wrap(data => data.users);
+export const getShifts = () => wrap(data => data.shifts);
+// Sơn cần xem mọi nhiệm vụ trên bảng điều phối; hàng chờ kỹ thuật vẫn gọi getTasks(id).
+export const getAllTasks = () => wrap(data => data.maintenanceTasks);
