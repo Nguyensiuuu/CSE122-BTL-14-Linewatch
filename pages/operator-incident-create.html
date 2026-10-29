@@ -75,9 +75,32 @@
                 <span class="hint">Ít nhất 8 ký tự để AI-1 có thể phân loại.</span>
               </div>
 
+              <div class="fields">
+                <div class="field">
+                  <label for="category">Loại sự cố</label>
+                  <select id="category" required>
+                    <option value="">Chọn loại sự cố…</option>
+                    <option value="mechanical">Cơ khí</option>
+                    <option value="electrical">Điện</option>
+                    <option value="quality">Chất lượng</option>
+                    <option value="other">Khác</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="priority">Mức ưu tiên</label>
+                  <select id="priority" required>
+                    <option value="">Chọn ưu tiên…</option>
+                    <option value="low">Thấp</option>
+                    <option value="medium">Trung bình</option>
+                    <option value="high">Cao</option>
+                  </select>
+                </div>
+              </div>
+
               <div class="field">
                 <span class="field-label">Mức ảnh hưởng</span>
                 <div class="chips">
+                  <label class="check"><input type="radio" name="impact" value="full"> Dừng toàn bộ</label>
                   <label class="check"><input type="radio" name="impact" value="partial" checked> Dừng một phần</label>
                   <label class="check"><input type="radio" name="impact" value="unknown"> Chưa rõ</label>
                 </div>

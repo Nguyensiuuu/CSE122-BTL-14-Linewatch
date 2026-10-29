@@ -254,8 +254,13 @@ h1, h2, h3, .brand {
   border-left-color: #f59e0b;
 }
 
+.machine.fault,
 .machine.stopped {
   border-left-color: #ef4444;
+}
+
+.machine.maintenance {
+  border-left-color: #2b5e7a;
 }
 
 .machine b {
